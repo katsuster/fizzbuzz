@@ -1,10 +1,16 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#define BUFSIZE      (CHUNKSIZE * 4)
-#define CHUNKSIZE    (4096 * 4)
+#include <fcntl.h>
+#include <sys/uio.h>
+
+//512KB
+#define BUFSIZE      (CHUNKSIZE * 16)
+#define CHUNKSIZE    (4096 * 8)
 
 #define PARTS    3
 
@@ -14,6 +20,23 @@ unsigned int rp, wp;
 #define wrap(wp)    ((wp) & (BUFSIZE - 1))
 
 char tab2[4 * 10000];
+
+ssize_t vwrite(int fd, void *buf, size_t count)
+{
+	struct iovec iov;
+	ssize_t n;
+
+	iov.iov_base = buf;
+	iov.iov_len = count;
+
+	while (iov.iov_len > 0) {
+		n = vmsplice(1, &iov, 1, 0);
+		iov.iov_base += n;
+		iov.iov_len -= n;
+	}
+
+	return count;
+}
 
 int gentbl(void)
 {
@@ -327,7 +350,7 @@ int fizzbuzz(unsigned int i)
 		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
 	}
 	if (wp - rp >= CHUNKSIZE) {
-		write(1, &buf[wrap(rp)], CHUNKSIZE);
+		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
 		rp += CHUNKSIZE;
 	}
 
@@ -360,10 +383,12 @@ char tmp10[] =
 
 int main(int argc, char *argv[])
 {
+	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
+
 	gentbl();
 
 	for (unsigned int i = 1; i < 0xffffffff;) {
-		if (1000000020UL <= i && i <= 4294960000UL) {
+		if (1000000020UL <= i && i <= 4294967250UL) {
 			unsigned int wp_before = wp;
 			char *p = &buf[wrap(wp)];
 
@@ -378,12 +403,12 @@ int main(int argc, char *argv[])
 				memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
 			}
 			if (wp - rp >= CHUNKSIZE) {
-				write(1, &buf[wrap(rp)], CHUNKSIZE);
+				vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
 				rp += CHUNKSIZE;
 			}
 
 			i += 30;
-		} else if (i >= 100000020UL && i <= 999990000UL) {
+		} else if (100000020UL <= i && i <= 999999960UL) {
 			unsigned int wp_before = wp;
 			char *p = &buf[wrap(wp)];
 
@@ -398,7 +423,7 @@ int main(int argc, char *argv[])
 				memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
 			}
 			if (wp - rp >= CHUNKSIZE) {
-				write(1, &buf[wrap(rp)], CHUNKSIZE);
+				vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
 				rp += CHUNKSIZE;
 			}
 
@@ -408,7 +433,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	write(1, &buf[wrap(rp)], wp - rp);
+	vwrite(1, &buf[wrap(rp)], wp - rp);
 
 	return 0;
 }
