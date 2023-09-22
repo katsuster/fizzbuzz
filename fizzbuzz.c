@@ -357,7 +357,7 @@ int fizzbuzz(unsigned int i)
 	return i + 1;
 }
 
-char tmp9[] =
+const char tmp9[] =
 "FizzBuzz\n.........\n.........\n"
 "Fizz\n.........\nBuzz\n"
 "Fizz\n.........\n.........\n"
@@ -369,7 +369,7 @@ char tmp9[] =
 "Fizz\nBuzz\n.........\n"
 "Fizz\n.........\n.........\n";
 
-char tmp10[] =
+const char tmp10[] =
 "FizzBuzz\n..........\n..........\n"
 "Fizz\n..........\nBuzz\n"
 "Fizz\n..........\n..........\n"
