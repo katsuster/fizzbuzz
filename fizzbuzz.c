@@ -83,7 +83,7 @@ void inline my_itoa9_1(char *buf, unsigned int i)
 	*((unsigned long long *)&buf4[1]) = sss4 | sss;
 	*((unsigned long long *)&buf5[1]) = sss5 | sss;
 
-	str = &tab2[(i % 10000) * 4];
+	str = &tab2[i * 4];
 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = str[3];
 }
@@ -122,7 +122,7 @@ void inline my_itoa9_2(char *buf, unsigned int i)
 	*((unsigned long long *)&buf5[1]) = sss5 | sss;
 	*((unsigned long long *)&buf6[1]) = sss6 | sss;
 
-	str = &tab2[(i % 10000) * 4];
+	str = &tab2[i * 4];
 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = buf6[0] = str[3];
 }
@@ -158,7 +158,7 @@ void inline my_itoa9_3(char *buf, unsigned int i)
 	*((unsigned long long *)&buf4[1]) = sss4 | sss;
 	*((unsigned long long *)&buf5[1]) = sss5 | sss;
 
-	str = &tab2[(i % 10000) * 4];
+	str = &tab2[i * 4];
 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = str[3];
 }
@@ -195,7 +195,7 @@ void inline my_itoa10_1(char *buf, unsigned int i)
 	*((unsigned long long *)&buf4[2]) = sss4 | sss;
 	*((unsigned long long *)&buf5[2]) = sss5 | sss;
 
-	str = &tab2[(i % 10000) * 4];
+	str = &tab2[i * 4];
 	ssss = *((unsigned short *)&str[2]);
 
 	*((unsigned short *)&buf1[0]) = ssss;
@@ -240,7 +240,7 @@ void inline my_itoa10_2(char *buf, unsigned int i)
 	*((unsigned long long *)&buf5[2]) = sss5 | sss;
 	*((unsigned long long *)&buf6[2]) = sss6 | sss;
 
-	str = &tab2[(i % 10000) * 4];
+	str = &tab2[i * 4];
 	ssss = *((unsigned short *)&str[2]);
 
 	*((unsigned short *)&buf1[0]) = ssss;
@@ -283,7 +283,7 @@ void inline my_itoa10_3(char *buf, unsigned int i)
 	*((unsigned long long *)&buf4[2]) = sss4 | sss;
 	*((unsigned long long *)&buf5[2]) = sss5 | sss;
 
-	str = &tab2[(i % 10000) * 4];
+	str = &tab2[i * 4];
 	ssss = *((unsigned short *)&str[2]);
 
 	*((unsigned short *)&buf1[0]) = ssss;
