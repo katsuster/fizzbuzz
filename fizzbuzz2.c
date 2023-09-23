@@ -248,12 +248,14 @@ int out_fb(char *buf)
 int out_fandb(char *buf)
 {
 	const char *str = "Fizz\nBuz";
+	const char *str2 = "z\n";
 	const unsigned long long *s = (const void *)str;
+	const unsigned short *s2 = (const void *)str2;
 	unsigned long long *b = (void *)buf;
+	unsigned short *b2 = (void *)buf + 8;
 
 	*b = *s;
-	buf[8] = 'z';
-	buf[9] = '\n';
+	*b2 = *s2;
 
 	return 10;
 }
@@ -261,12 +263,14 @@ int out_fandb(char *buf)
 int out_bandf(char *buf)
 {
 	const char *str = "Buzz\nFiz";
+	const char *str2 = "z\n";
 	const unsigned long long *s = (const void *)str;
+	const unsigned short *s2 = (const void *)str2;
 	unsigned long long *b = (void *)buf;
+	unsigned short *b2 = (void *)buf + 8;
 
 	*b = *s;
-	buf[8] = 'z';
-	buf[9] = '\n';
+	*b2 = *s2;
 
 	return 10;
 }
