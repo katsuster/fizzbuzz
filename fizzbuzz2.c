@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
 		inc_c(&d);  r = out_fb(p);      p += r;
 
 		wp += p - p_s;
-		
+
 		if (wrap(wp) < wrap(wp_before)) {
 			memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
 		}
