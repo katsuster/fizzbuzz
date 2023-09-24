@@ -129,7 +129,7 @@ void inline my_itoa9_3(char *buf, unsigned int i)
 	*((unsigned long long *)&buf5[0]) = sss;
 }
 
-void inline my_itoa10_1(char *buf, unsigned int i, unsigned int j)
+void inline my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	char *buf1 = buf + 0;
 	char *buf2 = buf + 11;
@@ -139,12 +139,11 @@ void inline my_itoa10_1(char *buf, unsigned int i, unsigned int j)
 	const char *str;
 	unsigned long long sss;
 
-	str = &tab2[(i % 10000) * 4];
-	i /= 10000;
+	str = &tab2[i * 4];
 	sss = *((unsigned int *)str);
 	sss <<= 32;
 
-	str = &tab2[i * 4];
+	str = &tab2[j * 4];
 	sss |= *((unsigned int *)str);
 
 	*((unsigned long long *)&buf1[1]) = sss;
@@ -153,14 +152,14 @@ void inline my_itoa10_1(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf4[1]) = sss;
 	*((unsigned long long *)&buf5[1]) = sss;
 
-	buf1[0] = j + '0';
-	buf2[0] = j + '0';
-	buf3[0] = j + '0';
-	buf4[0] = j + '0';
-	buf5[0] = j + '0';
+	buf1[0] = k + '0';
+	buf2[0] = k + '0';
+	buf3[0] = k + '0';
+	buf4[0] = k + '0';
+	buf5[0] = k + '0';
 }
 
-void inline my_itoa10_2(char *buf, unsigned int i, unsigned int j)
+void inline my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	char *buf1 = buf + 80;
 	char *buf2 = buf + 96;
@@ -171,12 +170,11 @@ void inline my_itoa10_2(char *buf, unsigned int i, unsigned int j)
 	const char *str;
 	unsigned long long sss;
 
-	str = &tab2[(i % 10000) * 4];
-	i /= 10000;
+	str = &tab2[i * 4];
 	sss = *((unsigned int *)str);
 	sss <<= 32;
 
-	str = &tab2[i * 4];
+	str = &tab2[j * 4];
 	sss |= *((unsigned int *)str);
 
 	*((unsigned long long *)&buf1[1]) = sss;
@@ -186,15 +184,15 @@ void inline my_itoa10_2(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf5[1]) = sss;
 	*((unsigned long long *)&buf6[1]) = sss;
 
-	buf1[0] = j + '0';
-	buf2[0] = j + '0';
-	buf3[0] = j + '0';
-	buf4[0] = j + '0';
-	buf5[0] = j + '0';
-	buf6[0] = j + '0';
+	buf1[0] = k + '0';
+	buf2[0] = k + '0';
+	buf3[0] = k + '0';
+	buf4[0] = k + '0';
+	buf5[0] = k + '0';
+	buf6[0] = k + '0';
 }
 
-void inline my_itoa10_3(char *buf, unsigned int i, unsigned int j)
+void inline my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	char *buf1 = buf + 175;
 	char *buf2 = buf + 186;
@@ -204,12 +202,11 @@ void inline my_itoa10_3(char *buf, unsigned int i, unsigned int j)
 	const char *str;
 	unsigned long long sss;
 
-	str = &tab2[(i % 10000) * 4];
-	i /= 10000;
+	str = &tab2[i * 4];
 	sss = *((unsigned int *)str);
 	sss <<= 32;
 
-	str = &tab2[i * 4];
+	str = &tab2[j * 4];
 	sss |= *((unsigned int *)str);
 
 	*((unsigned long long *)&buf1[1]) = sss;
@@ -218,11 +215,11 @@ void inline my_itoa10_3(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf4[1]) = sss;
 	*((unsigned long long *)&buf5[1]) = sss;
 
-	buf1[0] = j + '0';
-	buf2[0] = j + '0';
-	buf3[0] = j + '0';
-	buf4[0] = j + '0';
-	buf5[0] = j + '0';
+	buf1[0] = k + '0';
+	buf2[0] = k + '0';
+	buf3[0] = k + '0';
+	buf4[0] = k + '0';
+	buf5[0] = k + '0';
 }
 
 int my_itoa(char *buf, unsigned int i)
@@ -496,9 +493,107 @@ const char tmp10[] =
 "Fizz\n.........8\n.........9\n"
 "FizzBuzz\n";
 
+void inline do_9(unsigned int t)
+{
+	unsigned int wp_before = wp;
+	char *p = &buf[wrap(wp)];
+
+	memcpy(p, tmp9, sizeof(tmp9));
+	my_itoa9_1(p, t);
+	my_itoa9_2(p, t + 1);
+	my_itoa9_3(p, t + 2);
+
+	wp += 119 * 2;
+
+	if (wrap(wp) < wrap(wp_before)) {
+		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+	}
+	if (wp - rp >= CHUNKSIZE) {
+		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+		rp += CHUNKSIZE;
+	}
+}
+
+void do_10_gen(unsigned int t)
+{
+	unsigned int u, v, w, x;
+	unsigned int wp_before = wp;
+	char *p = &buf[wrap(wp)];
+
+	memcpy(p, tmp10, sizeof(tmp10));
+	u = t % 100000000;
+	v = t / 100000000;
+	w = u % 10000;
+	x = u / 10000;
+	my_itoa10_1(p, w, x, v);
+	switch (u) {
+	case 99999999:
+		my_itoa10_2(p, 0, 0, v + 1);
+		my_itoa10_3(p, 1, 0, v + 1);
+		break;
+	case 99999998:
+		my_itoa10_2(p, (u + 1) % 10000, (u + 1) / 10000, v);
+		my_itoa10_3(p, 0, 0, v + 1);
+		break;
+	default:
+		my_itoa10_2(p, (u + 1) % 10000, (u + 1) / 10000, v);
+		my_itoa10_3(p, (u + 2) % 10000, (u + 2) / 10000, v);
+		break;
+	}
+
+	wp += 127 * 2;
+
+	if (wrap(wp) < wrap(wp_before)) {
+		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+	}
+	if (wp - rp >= CHUNKSIZE) {
+		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+		rp += CHUNKSIZE;
+	}
+}
+
+void inline do_10(unsigned int t, unsigned int v)
+{
+	unsigned int w, x;
+	unsigned int wp_before = wp;
+	char *p = &buf[wrap(wp)];
+
+	memcpy(p, tmp10, sizeof(tmp10));
+
+	w = t % 10000;
+	x = t / 10000;
+
+	my_itoa10_1(p, w, x, v);
+
+	switch (w) {
+	case 9999:
+		my_itoa10_2(p, 0, x + 1, v);
+		my_itoa10_3(p, 1, x + 1, v);
+		break;
+	case 9998:
+		my_itoa10_2(p, 9999, x, v);
+		my_itoa10_3(p,    0, x + 1, v);
+		break;
+	default:
+		my_itoa10_2(p, w + 1, x, v);
+		my_itoa10_3(p, w + 2, x, v);
+		break;
+	}
+
+	wp += 127 * 2;
+
+	if (wrap(wp) < wrap(wp_before)) {
+		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+	}
+	if (wp - rp >= CHUNKSIZE) {
+		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+		rp += CHUNKSIZE;
+	}
+}
+
 int main(int argc, char *argv[])
 {
-	unsigned int i, t;
+	unsigned int i, t, v;
 
 	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
 
@@ -510,62 +605,43 @@ int main(int argc, char *argv[])
 
 	t = i / 10;
 	for (; i < 999999990UL; i += 30, t += 3) {
-		unsigned int wp_before = wp;
-		char *p = &buf[wrap(wp)];
-
-		memcpy(p, tmp9, sizeof(tmp9));
-		my_itoa9_1(p, t);
-		my_itoa9_2(p, t + 1);
-		my_itoa9_3(p, t + 2);
-
-		wp += 119 * 2;
-
-		if (wrap(wp) < wrap(wp_before)) {
-			memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-		}
-		if (wp - rp >= CHUNKSIZE) {
-			vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-			rp += CHUNKSIZE;
-		}
+		do_9(t);
 	}
 
 	fizzbuzz30(i);
 	i += 30;
+	t += 3;
 
-	t = i / 10;
+	t -= 100000000UL;
+	v = 1;
+	for (; i < 1999999980UL; i += 30, t += 3) {
+		do_10(t, v);
+	}
+
+	do_10_gen(t + 100000000UL);
+	i += 30;
+	t += 3;
+
+	t -= 100000000UL;
+	v = 2;
+	for (; i < 3000000000UL; i += 30, t += 3) {
+		do_10(t, v);
+	}
+
+	t -= 100000000UL;
+	v = 3;
+	for (; i < 3999999990UL; i += 30, t += 3) {
+		do_10(t, v);
+	}
+
+	do_10_gen(t + 300000000UL);
+	i += 30;
+	t += 3;
+
+	t -= 100000000UL;
+	v = 4;
 	for (; i < 4294967250UL; i += 30, t += 3) {
-		unsigned int u, v;
-		unsigned int wp_before = wp;
-		char *p = &buf[wrap(wp)];
-
-		memcpy(p, tmp10, sizeof(tmp10));
-		u = t % 100000000;
-		v = t / 100000000;
-		my_itoa10_1(p, u, v);
-		switch (u) {
-		case 99999999:
-			my_itoa10_2(p, 0, v + 1);
-			my_itoa10_3(p, 1, v + 1);
-			break;
-		case 99999998:
-			my_itoa10_2(p, u + 1, v);
-			my_itoa10_3(p, 0, v + 1);
-			break;
-		default:
-			my_itoa10_2(p, u + 1, v);
-			my_itoa10_3(p, u + 2, v);
-			break;
-		}
-
-		wp += 127 * 2;
-
-		if (wrap(wp) < wrap(wp_before)) {
-			memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-		}
-		if (wp - rp >= CHUNKSIZE) {
-			vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-			rp += CHUNKSIZE;
-		}
+		do_10(t, v);
 	}
 
 	for (; i < 0xffffffff;) {
