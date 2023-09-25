@@ -9,8 +9,8 @@
 #include <sys/uio.h>
 
 //512KB
-#define BUFSIZE      (CHUNKSIZE * 16)
-#define CHUNKSIZE    (4096 * 8)
+#define BUFSIZE      (CHUNKSIZE * 4)
+#define CHUNKSIZE    (4096 * 32)
 
 #define PARTS    3
 
