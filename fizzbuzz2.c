@@ -31,6 +31,10 @@ ssize_t vwrite(int fd, void *buf, size_t count)
 
 	while (iov.iov_len > 0) {
 		n = vmsplice(1, &iov, 1, 0);
+		if (n < 0) {
+			perror("vmsplice");
+			exit(1);
+		}
 		iov.iov_base += n;
 		iov.iov_len -= n;
 	}
