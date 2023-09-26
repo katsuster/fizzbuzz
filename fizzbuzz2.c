@@ -17,7 +17,7 @@ unsigned int rp, wp;
 
 #define wrap(wp)    ((wp) & (BUFSIZE - 1))
 
-ssize_t vwrite(int fd, void *buf, size_t count)
+static ssize_t vwrite(int fd, void *buf, size_t count)
 {
 	struct iovec iov;
 	ssize_t n;
@@ -42,6 +42,7 @@ struct dec {
 	unsigned long long h;
 	unsigned long long l;
 	int ke;
+	unsigned int next_ke;
 };
 
 //8 digits, offset 0xf6 (ff: 9, fe: 8, ..., f6: 0)
@@ -51,7 +52,7 @@ struct dec {
 //convert from digits to characters (ex. 0xf6 - 0xc6 = '0')
 #define D_TOCHR   0xc6c6c6c6c6c6c6c6ULL
 
-void inc_c(struct dec *d)
+static void inc_c(struct dec *d)
 {
 	if (d->l == D_MAX) {
 		d->l = D_ZERO;
@@ -69,12 +70,12 @@ void inc_c(struct dec *d)
 	}
 }
 
-void inc_nc(struct dec *d)
+static void inc_nc(struct dec *d)
 {
 	d->l++;
 }
 
-int out_num(char *buf, struct dec *d)
+static int out_num(char *buf, struct dec *d)
 {
 	unsigned long long h, l;
 	unsigned long long *b = (void *)buf;
@@ -111,7 +112,7 @@ int out_num(char *buf, struct dec *d)
 	return d->ke + 1;
 }
 
-int out_fizz(char *buf)
+static int out_fizz(char *buf)
 {
 	const char *str = "Fizz\n   ";
 	const unsigned long long *s = (const void *)str;
@@ -122,18 +123,7 @@ int out_fizz(char *buf)
 	return 5;
 }
 
-int out_buzz(char *buf)
-{
-	const char *str = "Buzz\n   ";
-	const unsigned long long *s = (const void *)str;
-	unsigned long long *b = (void *)buf;
-
-	*b = *s;
-
-	return 5;
-}
-
-int out_fb(char *buf)
+static int out_fb(char *buf)
 {
 	const char *str = "FizzBuzz";
 	const unsigned long long *s = (const void *)str;
@@ -145,7 +135,7 @@ int out_fb(char *buf)
 	return 9;
 }
 
-int out_fandb(char *buf)
+static int out_fandb(char *buf)
 {
 	const char *str = "Fizz\nBuz";
 	const char *str2 = "z\n";
@@ -160,7 +150,7 @@ int out_fandb(char *buf)
 	return 10;
 }
 
-int out_bandf(char *buf)
+static int out_bandf(char *buf)
 {
 	const char *str = "Buzz\nFiz";
 	const char *str2 = "z\n";
@@ -175,6 +165,62 @@ int out_bandf(char *buf)
 	return 10;
 }
 
+static void fizzbuzz30(struct dec *d, unsigned int j)
+{
+	unsigned int wp_before = wp;
+	char *p = &buf[wrap(wp)];
+	char *p_s = p;
+	int r;
+
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_bandf(p);   p += r;
+	inc_nc(d);
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fandb(p);   p += r;
+	inc_c(d);
+
+	if (d->next_ke == j) {
+		d->ke++;
+		d->next_ke *= 10;
+	}
+
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fb(p);      p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_c(d);  r = out_bandf(p);   p += r;
+
+	inc_nc(d);
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fandb(p);   p += r;
+	inc_nc(d);
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_c(d);  r = out_fb(p);      p += r;
+
+	wp += p - p_s;
+
+	if (wrap(wp) < wrap(wp_before)) {
+		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+	}
+	if (wp - rp >= CHUNKSIZE) {
+		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+		rp += CHUNKSIZE;
+	}
+}
+
 const char last[] =
 "4294967281\n4294967282\n"
 "Fizz\n4294967284\nBuzz\n"
@@ -184,65 +230,14 @@ const char last[] =
 
 int main(int argc, char *argv[])
 {
-	struct dec d = {D_ZERO, D_ZERO, 1};
-	unsigned int next_ke = 10, i = 1, j = 0;
+	struct dec d = {D_ZERO, D_ZERO, 1, 10};
+	unsigned int i = 1, j = 0;
 
 	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
 
 	j = 10;
 	for (i = 1; i < 0xfffffff0;) {
-		unsigned int wp_before = wp;
-		char *p = &buf[wrap(wp)];
-		char *p_s = p;
-		int r;
-
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_fizz(p);    p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_bandf(p);   p += r;
-		inc_nc(&d);
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_fandb(p);   p += r;
-		inc_c(&d);
-
-		if (next_ke == j) {
-			d.ke++;
-			next_ke *= 10;
-		}
-
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_fizz(p);    p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_fb(p);      p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_fizz(p);    p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_c(&d);  r = out_bandf(p);   p += r;
-
-		inc_nc(&d);
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_fandb(p);   p += r;
-		inc_nc(&d);
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_fizz(p);    p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_nc(&d); r = out_num(p, &d); p += r;
-		inc_c(&d);  r = out_fb(p);      p += r;
-
-		wp += p - p_s;
-
-		if (wrap(wp) < wrap(wp_before)) {
-			memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-		}
-		if (wp - rp >= CHUNKSIZE) {
-			vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-			rp += CHUNKSIZE;
-		}
+		fizzbuzz30(&d, j);
 
 		j += 30;
 		i += 30;
