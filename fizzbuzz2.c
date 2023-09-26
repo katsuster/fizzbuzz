@@ -38,6 +38,17 @@ static ssize_t vwrite(int fd, void *buf, size_t count)
 	return count;
 }
 
+static void rb_wrap(unsigned int wp_before)
+{
+	if (wrap(wp) < wrap(wp_before)) {
+		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+	}
+	if (wp - rp >= CHUNKSIZE) {
+		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+		rp += CHUNKSIZE;
+	}
+}
+
 struct dec {
 	unsigned long long h;
 	unsigned long long l;
@@ -212,13 +223,7 @@ static void fizzbuzz30(struct dec *d, unsigned int j)
 
 	wp += p - p_s;
 
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-	}
+	rb_wrap(wp_before);
 }
 
 const char last[] =
@@ -250,13 +255,7 @@ int main(int argc, char *argv[])
 		memcpy(p, last, sizeof(last));
 		wp += sizeof(last);
 
-		if (wrap(wp) < wrap(wp_before)) {
-			memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-		}
-		if (wp - rp >= CHUNKSIZE) {
-			vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-			rp += CHUNKSIZE;
-		}
+		rb_wrap(wp_before);
 	}
 
 	vwrite(1, &buf[wrap(rp)], wp - rp);
