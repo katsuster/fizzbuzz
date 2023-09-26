@@ -17,7 +17,7 @@ unsigned int rp, wp;
 
 #define wrap(wp)    ((wp) & (BUFSIZE - 1))
 
-static ssize_t vwrite(int fd, void *buf, size_t count)
+static inline ssize_t vwrite(int fd, void *buf, size_t count)
 {
 	struct iovec iov;
 	ssize_t n;
@@ -38,7 +38,7 @@ static ssize_t vwrite(int fd, void *buf, size_t count)
 	return count;
 }
 
-static void rb_wrap(unsigned int wp_before)
+static inline void rb_wrap(unsigned int wp_before)
 {
 	if (wrap(wp) < wrap(wp_before)) {
 		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
