@@ -22,7 +22,7 @@ unsigned int rp, wp;
 char tab[4 * 10000];
 unsigned int *tab2 = (void *)tab;
 
-ssize_t vwrite(int fd, void *buf, size_t count)
+static ssize_t vwrite(int fd, void *buf, size_t count)
 {
 	struct iovec iov;
 	ssize_t n;
@@ -43,7 +43,18 @@ ssize_t vwrite(int fd, void *buf, size_t count)
 	return count;
 }
 
-int gentbl(void)
+static void rb_wrap(unsigned int wp_before)
+{
+	if (wrap(wp) < wrap(wp_before)) {
+		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+	}
+	if (wp - rp >= CHUNKSIZE) {
+		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+		rp += CHUNKSIZE;
+	}
+}
+
+static int gentbl(void)
 {
 	int i;
 
@@ -87,7 +98,7 @@ int gentbl(void)
 	*((unsigned long long *)&buf5[OFF]) = VAL; \
 	*((unsigned long long *)&buf6[OFF]) = VAL
 
-void my_itoa8_1(char *buf, unsigned int i, unsigned int j)
+static void my_itoa8_1(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF5(0, 9, 23, 42, 51);
 	unsigned long long sss;
@@ -102,7 +113,7 @@ void my_itoa8_1(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf5[0]) = sss | (0x38ULL << 56);
 }
 
-void my_itoa8_2(char *buf, unsigned int i, unsigned int j)
+static void my_itoa8_2(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF6(70, 84, 93, 111, 120, 134);
 	unsigned long long sss;
@@ -118,7 +129,7 @@ void my_itoa8_2(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf6[0]) = sss | (0x39ULL << 56);
 }
 
-void my_itoa8_3(char *buf, unsigned int i, unsigned int j)
+static void my_itoa8_3(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF5(153, 162, 181, 195, 204);
 	unsigned long long sss;
@@ -133,7 +144,7 @@ void my_itoa8_3(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf5[0]) = sss | (0x39ULL << 56);
 }
 
-void my_itoa9_1(char *buf, unsigned int i, unsigned int j)
+static void my_itoa9_1(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF5(0, 10, 25, 45, 55);
 	unsigned long long sss;
@@ -143,7 +154,7 @@ void my_itoa9_1(char *buf, unsigned int i, unsigned int j)
 	SET_BUF5(0, sss);
 }
 
-void my_itoa9_2(char *buf, unsigned int i, unsigned int j)
+static void my_itoa9_2(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF6(75, 90, 100, 119, 129, 144);
 	unsigned long long sss;
@@ -153,7 +164,7 @@ void my_itoa9_2(char *buf, unsigned int i, unsigned int j)
 	SET_BUF6(0, sss);
 }
 
-void my_itoa9_3(char *buf, unsigned int i, unsigned int j)
+static void my_itoa9_3(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF5(164, 174, 194, 209, 219);
 	unsigned long long sss;
@@ -163,7 +174,7 @@ void my_itoa9_3(char *buf, unsigned int i, unsigned int j)
 	SET_BUF5(0, sss);
 }
 
-void my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int k)
+static void my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	DEF_BUF5(0, 11, 27, 48, 59);
 	unsigned long long sss;
@@ -175,7 +186,7 @@ void my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int k)
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = k + '0';
 }
 
-void my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int k)
+static void my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	DEF_BUF6(80, 96, 107, 127, 138, 154);
 	unsigned long long sss;
@@ -187,7 +198,7 @@ void my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int k)
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = buf6[0] = k + '0';
 }
 
-void my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int k)
+static void my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	DEF_BUF5(175, 186, 207, 223, 234);
 	unsigned long long sss;
@@ -199,7 +210,7 @@ void my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int k)
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = k + '0';
 }
 
-int my_itoa(char *buf, unsigned int i)
+static int my_itoa(char *buf, unsigned int i)
 {
 	int part[PARTS] = {0};
 	int partp;
@@ -247,53 +258,7 @@ int my_itoa(char *buf, unsigned int i)
 	return pos;
 }
 
-int my_itoa_n(char *buf, unsigned int i)
-{
-	int part[PARTS] = {0};
-	int partp;
-	size_t pos = 0;
-
-	for (partp = PARTS - 1; partp >= 0; partp--) {
-		part[partp] = i % 10000;
-
-		i /= 10000;
-		if (i == 0) {
-			break;
-		}
-	}
-
-	{
-		const char *str;
-
-		str = &tab[part[partp] * 4];
-		if (part[partp] >= 1000) {
-			buf[pos++] = str[0];
-		}
-		if (part[partp] >= 100) {
-			buf[pos++] = str[1];
-		}
-		if (part[partp] >= 10) {
-			buf[pos++] = str[2];
-		}
-		buf[pos++] = str[3];
-
-		partp++;
-	}
-
-	for (; partp < PARTS; partp++) {
-		const char *str;
-
-		str = &tab[part[partp] * 4];
-		buf[pos++] = str[0];
-		buf[pos++] = str[1];
-		buf[pos++] = str[2];
-		buf[pos++] = str[3];
-	}
-
-	return pos;
-}
-
-int out_fizz(char *buf)
+static int out_fizz(char *buf)
 {
 	const char *str = "Fizz\n   ";
 	const unsigned long long *s = (const void *)str;
@@ -304,18 +269,7 @@ int out_fizz(char *buf)
 	return 5;
 }
 
-int out_buzz(char *buf)
-{
-	const char *str = "Buzz\n   ";
-	const unsigned long long *s = (const void *)str;
-	unsigned long long *b = (void *)buf;
-
-	*b = *s;
-
-	return 5;
-}
-
-int out_fb(char *buf)
+static int out_fb(char *buf)
 {
 	const char *str = "FizzBuzz";
 	const unsigned long long *s = (const void *)str;
@@ -327,7 +281,7 @@ int out_fb(char *buf)
 	return 9;
 }
 
-int out_fandb(char *buf)
+static int out_fandb(char *buf)
 {
 	const char *str = "Fizz\nBuz";
 	const char *str2 = "z\n";
@@ -357,7 +311,7 @@ int out_bandf(char *buf)
 	return 10;
 }
 
-void fizzbuzz30(unsigned int i)
+static void fizzbuzz30(unsigned int i)
 {
 	unsigned int wp_before = wp;
 	char *p = &buf[wrap(wp)];
@@ -395,13 +349,7 @@ void fizzbuzz30(unsigned int i)
 
 	wp += p - p_s;
 
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-	}
+	rb_wrap(wp_before);
 }
 
 const char tmp8[] =
@@ -443,7 +391,7 @@ const char tmp10[] =
 "Fizz\n.........8\n.........9\n"
 "FizzBuzz\n";
 
-void do_8(unsigned int t)
+static void do_8(unsigned int t)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
@@ -472,16 +420,10 @@ void do_8(unsigned int t)
 
 	wp += 111 * 2;
 
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-	}
+	rb_wrap(wp_before);
 }
 
-void do_9(unsigned int t)
+static void do_9(unsigned int t)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
@@ -510,16 +452,10 @@ void do_9(unsigned int t)
 
 	wp += 119 * 2;
 
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-	}
+	rb_wrap(wp_before);
 }
 
-void do_10_gen(unsigned int t)
+static void do_10_gen(unsigned int t)
 {
 	unsigned int u, v, w, x;
 	unsigned int wp_before = wp;
@@ -548,16 +484,10 @@ void do_10_gen(unsigned int t)
 
 	wp += 127 * 2;
 
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-	}
+	rb_wrap(wp_before);
 }
 
-void do_10(unsigned int t, unsigned int v)
+static void do_10(unsigned int t, unsigned int v)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
@@ -587,13 +517,7 @@ void do_10(unsigned int t, unsigned int v)
 
 	wp += 127 * 2;
 
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-	}
+	rb_wrap(wp_before);
 }
 
 const char last[] =
@@ -671,13 +595,7 @@ int main(int argc, char *argv[])
 		memcpy(p, last, sizeof(last));
 		wp += sizeof(last);
 
-		if (wrap(wp) < wrap(wp_before)) {
-			memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-		}
-		if (wp - rp >= CHUNKSIZE) {
-			vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-			rp += CHUNKSIZE;
-		}
+		rb_wrap(wp_before);
 	}
 
 	vwrite(1, &buf[wrap(rp)], wp - rp);
