@@ -404,46 +404,6 @@ void fizzbuzz30(unsigned int i)
 	}
 }
 
-int fizzbuzz(unsigned int i)
-{
-	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
-
-	if (i % 3 == 0) {
-		*p++ = 'F';
-		*p++ = 'i';
-		*p++ = 'z';
-		*p++ = 'z';
-		wp += 4;
-	}
-	if (i % 5 == 0) {
-		*p++ = 'B';
-		*p++ = 'u';
-		*p++ = 'z';
-		*p++ = 'z';
-		wp += 4;
-	}
-	if (wp_before == wp) {
-		int r;
-		r = my_itoa_n(p, i);
-		p += r;
-		wp += r;
-	}
-
-	*p++ = '\n';
-	wp++;
-
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-	}
-
-	return i + 1;
-}
-
 const char tmp8[] =
 ".......1\n.......2\n"
 "Fizz\n.......4\nBuzz\n"
@@ -636,6 +596,13 @@ void do_10(unsigned int t, unsigned int v)
 	}
 }
 
+const char last[] =
+"4294967281\n4294967282\n"
+"Fizz\n4294967284\nBuzz\n"
+"Fizz\n4294967287\n4294967288\n"
+"Fizz\nBuzz\n4294967291\n"
+"Fizz\n4294967293\n4294967294\n";
+
 int main(int argc, char *argv[])
 {
 	unsigned int i, t, v;
@@ -693,12 +660,24 @@ int main(int argc, char *argv[])
 
 	t -= 100000000UL;
 	v = 4;
-	for (; i < 4294967250UL; i += 30, t += 3) {
+	for (; i < 4294967280UL; i += 30, t += 3) {
 		do_10(t, v);
 	}
 
-	for (; i < 0xffffffff;) {
-		i = fizzbuzz(i);
+	{
+		unsigned int wp_before = wp;
+		char *p = &buf[wrap(wp)];
+
+		memcpy(p, last, sizeof(last));
+		wp += sizeof(last);
+
+		if (wrap(wp) < wrap(wp_before)) {
+			memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+		}
+		if (wp - rp >= CHUNKSIZE) {
+			vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+			rp += CHUNKSIZE;
+		}
 	}
 
 	vwrite(1, &buf[wrap(rp)], wp - rp);

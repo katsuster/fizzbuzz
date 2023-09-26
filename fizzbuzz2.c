@@ -12,14 +12,10 @@
 #define BUFSIZE      (CHUNKSIZE * 4)
 #define CHUNKSIZE    (4096 * 32)
 
-#define PARTS    3
-
 char buf[BUFSIZE + 256];
 unsigned int rp, wp;
 
 #define wrap(wp)    ((wp) & (BUFSIZE - 1))
-
-char tab2[4 * 10000];
 
 ssize_t vwrite(int fd, void *buf, size_t count)
 {
@@ -40,106 +36,6 @@ ssize_t vwrite(int fd, void *buf, size_t count)
 	}
 
 	return count;
-}
-
-int gentbl(void)
-{
-	int i;
-
-	for (i = 0; i < 10000; i++) {
-		tab2[i * 4 + 0] = '0' + (i / 1000) % 10;
-		tab2[i * 4 + 1] = '0' + (i / 100) % 10;
-		tab2[i * 4 + 2] = '0' + (i / 10) % 10;
-		tab2[i * 4 + 3] = '0' + i % 10;
-	}
-
-	return 0;
-}
-
-int my_itoa(char *buf, unsigned int i)
-{
-	int part[PARTS] = {0};
-	int partp;
-	size_t pos = 0;
-
-	for (partp = PARTS - 1; partp >= 0; partp--) {
-		part[partp] = i % 10000;
-
-		i /= 10000;
-		if (i == 0) {
-			break;
-		}
-	}
-
-	{
-		const char *str;
-
-		str = &tab2[part[partp] * 4];
-		if (part[partp] >= 1000) {
-			buf[pos++] = str[0];
-		}
-		if (part[partp] >= 100) {
-			buf[pos++] = str[1];
-		}
-		if (part[partp] >= 10) {
-			buf[pos++] = str[2];
-		}
-		buf[pos++] = str[3];
-
-		partp++;
-	}
-
-	for (; partp < PARTS; partp++) {
-		const char *str;
-
-		str = &tab2[part[partp] * 4];
-		buf[pos++] = str[0];
-		buf[pos++] = str[1];
-		buf[pos++] = str[2];
-		buf[pos++] = str[3];
-	}
-
-	return pos;
-}
-
-int fizzbuzz(unsigned int i)
-{
-	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
-
-	if (i % 3 == 0) {
-		*p++ = 'F';
-		*p++ = 'i';
-		*p++ = 'z';
-		*p++ = 'z';
-		wp += 4;
-	}
-	if (i % 5 == 0) {
-		*p++ = 'B';
-		*p++ = 'u';
-		*p++ = 'z';
-		*p++ = 'z';
-		wp += 4;
-	}
-	if (wp_before == wp) {
-		int r;
-		r = my_itoa(p, i);
-		p += r;
-		wp += r;
-	}
-
-	*p++ = '\n';
-	wp++;
-
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-	}
-
-	return i + 1;
 }
 
 struct dec {
@@ -279,6 +175,13 @@ int out_bandf(char *buf)
 	return 10;
 }
 
+const char last[] =
+"4294967281\n4294967282\n"
+"Fizz\n4294967284\nBuzz\n"
+"Fizz\n4294967287\n4294967288\n"
+"Fizz\nBuzz\n4294967291\n"
+"Fizz\n4294967293\n4294967294\n";
+
 int main(int argc, char *argv[])
 {
 	struct dec d = {D_ZERO, D_ZERO, 1};
@@ -286,10 +189,8 @@ int main(int argc, char *argv[])
 
 	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
 
-	gentbl();
-
 	j = 10;
-	for (i = 1; i < 0xffffffd2;) {
+	for (i = 1; i < 0xfffffff0;) {
 		unsigned int wp_before = wp;
 		char *p = &buf[wrap(wp)];
 		char *p_s = p;
@@ -347,8 +248,20 @@ int main(int argc, char *argv[])
 		i += 30;
 	}
 
-	for (; i < 0xffffffff;) {
-		i = fizzbuzz(i);
+	{
+		unsigned int wp_before = wp;
+		char *p = &buf[wrap(wp)];
+
+		memcpy(p, last, sizeof(last));
+		wp += sizeof(last);
+
+		if (wrap(wp) < wrap(wp_before)) {
+			memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+		}
+		if (wp - rp >= CHUNKSIZE) {
+			vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+			rp += CHUNKSIZE;
+		}
 	}
 
 	vwrite(1, &buf[wrap(rp)], wp - rp);
