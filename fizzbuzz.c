@@ -87,7 +87,7 @@ int gentbl(void)
 	*((unsigned long long *)&buf5[OFF]) = VAL; \
 	*((unsigned long long *)&buf6[OFF]) = VAL
 
-void inline my_itoa8_1(char *buf, unsigned int i, unsigned int j)
+void my_itoa8_1(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF5(0, 9, 23, 42, 51);
 	unsigned long long sss;
@@ -102,7 +102,7 @@ void inline my_itoa8_1(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf5[0]) = sss | (0x38ULL << 56);
 }
 
-void inline my_itoa8_2(char *buf, unsigned int i, unsigned int j)
+void my_itoa8_2(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF6(70, 84, 93, 111, 120, 134);
 	unsigned long long sss;
@@ -118,7 +118,7 @@ void inline my_itoa8_2(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf6[0]) = sss | (0x39ULL << 56);
 }
 
-void inline my_itoa8_3(char *buf, unsigned int i, unsigned int j)
+void my_itoa8_3(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF5(153, 162, 181, 195, 204);
 	unsigned long long sss;
@@ -133,7 +133,7 @@ void inline my_itoa8_3(char *buf, unsigned int i, unsigned int j)
 	*((unsigned long long *)&buf5[0]) = sss | (0x39ULL << 56);
 }
 
-void inline my_itoa9_1(char *buf, unsigned int i, unsigned int j)
+void my_itoa9_1(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF5(0, 10, 25, 45, 55);
 	unsigned long long sss;
@@ -143,7 +143,7 @@ void inline my_itoa9_1(char *buf, unsigned int i, unsigned int j)
 	SET_BUF5(0, sss);
 }
 
-void inline my_itoa9_2(char *buf, unsigned int i, unsigned int j)
+void my_itoa9_2(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF6(75, 90, 100, 119, 129, 144);
 	unsigned long long sss;
@@ -153,7 +153,7 @@ void inline my_itoa9_2(char *buf, unsigned int i, unsigned int j)
 	SET_BUF6(0, sss);
 }
 
-void inline my_itoa9_3(char *buf, unsigned int i, unsigned int j)
+void my_itoa9_3(char *buf, unsigned int i, unsigned int j)
 {
 	DEF_BUF5(164, 174, 194, 209, 219);
 	unsigned long long sss;
@@ -163,7 +163,7 @@ void inline my_itoa9_3(char *buf, unsigned int i, unsigned int j)
 	SET_BUF5(0, sss);
 }
 
-void inline my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int k)
+void my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	DEF_BUF5(0, 11, 27, 48, 59);
 	unsigned long long sss;
@@ -175,7 +175,7 @@ void inline my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = k + '0';
 }
 
-void inline my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int k)
+void my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	DEF_BUF6(80, 96, 107, 127, 138, 154);
 	unsigned long long sss;
@@ -187,7 +187,7 @@ void inline my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = buf6[0] = k + '0';
 }
 
-void inline my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int k)
+void my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
 	DEF_BUF5(175, 186, 207, 223, 234);
 	unsigned long long sss;
@@ -483,7 +483,7 @@ const char tmp10[] =
 "Fizz\n.........8\n.........9\n"
 "FizzBuzz\n";
 
-void inline do_8(unsigned int t)
+void do_8(unsigned int t)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
@@ -521,7 +521,7 @@ void inline do_8(unsigned int t)
 	}
 }
 
-void inline do_9(unsigned int t)
+void do_9(unsigned int t)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
@@ -597,7 +597,7 @@ void do_10_gen(unsigned int t)
 	}
 }
 
-void inline do_10(unsigned int t, unsigned int v)
+void do_10(unsigned int t, unsigned int v)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
