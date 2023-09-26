@@ -22,7 +22,7 @@ unsigned int rp, wp;
 char tab[4 * 10000];
 unsigned int *tab2 = (void *)tab;
 
-static ssize_t vwrite(int fd, void *buf, size_t count)
+static inline ssize_t vwrite(int fd, void *buf, size_t count)
 {
 	struct iovec iov;
 	ssize_t n;
@@ -43,7 +43,7 @@ static ssize_t vwrite(int fd, void *buf, size_t count)
 	return count;
 }
 
-static void rb_wrap(unsigned int wp_before)
+static inline void rb_wrap(unsigned int wp_before)
 {
 	if (wrap(wp) < wrap(wp_before)) {
 		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
@@ -210,52 +210,78 @@ static void my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = k + '0';
 }
 
-static int my_itoa(char *buf, unsigned int i)
+struct dec {
+	unsigned long long h;
+	unsigned long long l;
+	int ke;
+	unsigned int next_ke;
+};
+
+//8 digits, offset 0xf6 (ff: 9, fe: 8, ..., f6: 0)
+#define D_ZERO    0xf6f6f6f6f6f6f6f6ULL
+#define D_ONE     0xf6f6f6f6f6f6f6f7ULL
+#define D_MAX     0xffffffffffffffffULL
+//convert from digits to characters (ex. 0xf6 - 0xc6 = '0')
+#define D_TOCHR   0xc6c6c6c6c6c6c6c6ULL
+
+static void inc_c(struct dec *d)
 {
-	int part[PARTS] = {0};
-	int partp;
-	size_t pos = 0;
+	if (d->l == D_MAX) {
+		d->l = D_ZERO;
+		d->h++;
 
-	for (partp = PARTS - 1; partp >= 0; partp--) {
-		part[partp] = i % 10000;
+		int ctz = __builtin_ctzll(d->h) & ~0x7;
+		unsigned long long mask = (1ULL << ctz) - 1;
+		d->h |= mask & D_ZERO;
+	} else {
+		d->l++;
 
-		i /= 10000;
-		if (i == 0) {
-			break;
-		}
+		int ctz = __builtin_ctzll(d->l) & ~0x7;
+		unsigned long long mask = (1ULL << ctz) - 1;
+		d->l |= mask & D_ZERO;
+	}
+}
+
+static void inc_nc(struct dec *d)
+{
+	d->l++;
+}
+
+static int out_num(char *buf, struct dec *d)
+{
+	unsigned long long h, l;
+	unsigned long long *b = (void *)buf;
+
+	h = d->h - D_TOCHR;
+	l = d->l - D_TOCHR;
+
+	switch (d->ke) {
+	case 9:
+	case 10:
+		h <<= (16 - d->ke) * 8;
+		h = htobe64(h);
+		*b = h;
+		b = (void *)(buf + d->ke - 8);
+		l = htobe64(l);
+		*b = l;
+		break;
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+		l <<= (8 - d->ke) * 8;
+		l = htobe64(l);
+		*b = l;
+		break;
 	}
 
-	{
-		const char *str;
+	buf[d->ke] = '\n';
 
-		str = &tab[part[partp] * 4];
-		if (part[partp] >= 1000) {
-			buf[pos++] = str[0];
-		}
-		if (part[partp] >= 100) {
-			buf[pos++] = str[1];
-		}
-		if (part[partp] >= 10) {
-			buf[pos++] = str[2];
-		}
-		buf[pos++] = str[3];
-
-		partp++;
-	}
-
-	for (; partp < PARTS; partp++) {
-		const char *str;
-
-		str = &tab[part[partp] * 4];
-		buf[pos++] = str[0];
-		buf[pos++] = str[1];
-		buf[pos++] = str[2];
-		buf[pos++] = str[3];
-	}
-
-	buf[pos++] = '\n';
-
-	return pos;
+	return d->ke + 1;
 }
 
 static int out_fizz(char *buf)
@@ -311,41 +337,50 @@ int out_bandf(char *buf)
 	return 10;
 }
 
-static void fizzbuzz30(unsigned int i)
+static void fizzbuzz30(struct dec *d, unsigned int j)
 {
 	unsigned int wp_before = wp;
 	char *p = &buf[wrap(wp)];
 	char *p_s = p;
 	int r;
 
-	        r = my_itoa(p, i); p += r;
-	i += 1; r = my_itoa(p, i); p += r;
-	        r = out_fizz(p);   p += r;
-	i += 2; r = my_itoa(p, i); p += r;
-	        r = out_bandf(p);  p += r;
-	i += 3; r = my_itoa(p, i); p += r;
-	i += 1; r = my_itoa(p, i); p += r;
-	        r = out_fandb(p);  p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_bandf(p);   p += r;
+	inc_nc(d);
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fandb(p);   p += r;
+	inc_c(d);
 
-	i += 3; r = my_itoa(p, i); p += r;
-	        r = out_fizz(p);   p += r;
-	i += 2; r = my_itoa(p, i); p += r;
-	i += 1; r = my_itoa(p, i); p += r;
-	        r = out_fb(p);     p += r;
-	i += 2; r = my_itoa(p, i); p += r;
-	i += 1; r = my_itoa(p, i); p += r;
-	        r = out_fizz(p);   p += r;
-	i += 2; r = my_itoa(p, i); p += r;
-	        r = out_bandf(p);  p += r;
+	if (d->next_ke == j) {
+		d->ke++;
+		d->next_ke *= 10;
+	}
 
-	i += 3; r = my_itoa(p, i); p += r;
-	i += 1; r = my_itoa(p, i); p += r;
-	        r = out_fandb(p);  p += r;
-	i += 3; r = my_itoa(p, i); p += r;
-	        r = out_fizz(p);   p += r;
-	i += 2; r = my_itoa(p, i); p += r;
-	i += 1; r = my_itoa(p, i); p += r;
-	        r = out_fb(p);     p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fb(p);      p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_c(d);  r = out_bandf(p);   p += r;
+
+	inc_nc(d);
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fandb(p);   p += r;
+	inc_nc(d);
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_nc(d); r = out_num(p, d); p += r;
+	inc_c(d);  r = out_fb(p);      p += r;
 
 	wp += p - p_s;
 
@@ -391,7 +426,7 @@ const char tmp10[] =
 "Fizz\n.........8\n.........9\n"
 "FizzBuzz\n";
 
-static void do_8(unsigned int t)
+static inline void do_8(unsigned int t)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
@@ -423,7 +458,7 @@ static void do_8(unsigned int t)
 	rb_wrap(wp_before);
 }
 
-static void do_9(unsigned int t)
+static inline void do_9(unsigned int t)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
@@ -455,39 +490,7 @@ static void do_9(unsigned int t)
 	rb_wrap(wp_before);
 }
 
-static void do_10_gen(unsigned int t)
-{
-	unsigned int u, v, w, x;
-	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
-
-	memcpy(p, tmp10, sizeof(tmp10));
-	u = t % 100000000;
-	v = t / 100000000;
-	w = u % 10000;
-	x = u / 10000;
-	my_itoa10_1(p, w, x, v);
-	switch (u) {
-	case 99999999:
-		my_itoa10_2(p, 0, 0, v + 1);
-		my_itoa10_3(p, 1, 0, v + 1);
-		break;
-	case 99999998:
-		my_itoa10_2(p, (u + 1) % 10000, (u + 1) / 10000, v);
-		my_itoa10_3(p, 0, 0, v + 1);
-		break;
-	default:
-		my_itoa10_2(p, (u + 1) % 10000, (u + 1) / 10000, v);
-		my_itoa10_3(p, (u + 2) % 10000, (u + 2) / 10000, v);
-		break;
-	}
-
-	wp += 127 * 2;
-
-	rb_wrap(wp_before);
-}
-
-static void do_10(unsigned int t, unsigned int v)
+static inline void do_10(unsigned int t, unsigned int v)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
@@ -529,6 +532,7 @@ const char last[] =
 
 int main(int argc, char *argv[])
 {
+	struct dec d = {D_ZERO, D_ZERO, 1, 10};
 	unsigned int i, t, v;
 
 	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
@@ -536,7 +540,7 @@ int main(int argc, char *argv[])
 	gentbl();
 
 	for (i = 1; i < 10000020UL; i += 30) {
-		fizzbuzz30(i);
+		fizzbuzz30(&d, i + 9);
 	}
 
 	t = i / 10;
@@ -544,7 +548,8 @@ int main(int argc, char *argv[])
 		do_8(t);
 	}
 
-	fizzbuzz30(i);
+	d.l = 0xfffffffffffffff6ULL;
+	fizzbuzz30(&d, i + 9);
 	i += 30;
 	t += 3;
 
@@ -552,7 +557,9 @@ int main(int argc, char *argv[])
 		do_9(t);
 	}
 
-	fizzbuzz30(i);
+	d.h = 0xf6f6f6f6f6f6f6ffULL;
+	d.l = 0xfffffffffffffff6ULL;
+	fizzbuzz30(&d, i + 9);
 	i += 30;
 	t += 3;
 
@@ -562,7 +569,9 @@ int main(int argc, char *argv[])
 		do_10(t, v);
 	}
 
-	do_10_gen(t + 100000000UL);
+	d.h = 0xf6f6f6f6f6f6f7ffULL;
+	d.l = 0xfffffffffffffef6ULL;
+	fizzbuzz30(&d, i + 9);
 	i += 30;
 	t += 3;
 
@@ -578,7 +587,9 @@ int main(int argc, char *argv[])
 		do_10(t, v);
 	}
 
-	do_10_gen(t + 300000000UL);
+	d.h = 0xf6f6f6f6f6f6f9ffULL;
+	d.l = 0xfffffffffffffff6ULL;
+	fizzbuzz30(&d, i + 9);
 	i += 30;
 	t += 3;
 
