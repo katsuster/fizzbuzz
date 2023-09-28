@@ -9,16 +9,14 @@
 #include <sys/uio.h>
 
 //512KB
-#define BUFSIZE      (CHUNKSIZE * 4)
-#define CHUNKSIZE    (4096 * 32)
+#define CHUNKSIZE    (4096 * 64)
 
-#define PARTS    3
-
-char buf[BUFSIZE + 256] __attribute__((aligned(4096)));
+char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
 unsigned int rp __attribute__((aligned(8)));
 unsigned int wp __attribute__((aligned(8)));
+int f __attribute__((aligned(8)));
 
-#define wrap(wp)    ((wp) & (BUFSIZE - 1))
+#define wrap(wp)    ((wp) & (CHUNKSIZE - 1))
 
 char tab[4 * 10000];
 unsigned int *tab2 = (void *)tab;
@@ -42,21 +40,32 @@ static inline void vwrite(int fd, void *buf, size_t count)
 	}
 }
 
+static inline char *get_p(void)
+{
+	return &buf2[f][wrap(wp)];
+}
+
+static inline char *get_p_r(void)
+{
+	return &buf2[f][wrap(rp)];
+}
+
 static inline void rb_wrap(unsigned int wp_before)
 {
 	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+		vwrite(1, &buf2[f][wrap(rp)], CHUNKSIZE);
 		rp += CHUNKSIZE;
+		f = !f;
 	}
 	if (wrap(wp) < wrap(wp_before)) {
-		memmove(&buf[0], &buf[BUFSIZE], wrap(wp));
+		memmove(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
 	}
 }
 
 static inline void append(const char *str, size_t len)
 {
 	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
+	char *p = get_p();
 
 	memmove(p, str, len);
 	wp += len;
@@ -290,7 +299,7 @@ static inline int out_bandf(char *buf)
 static void fizzbuzz30(struct dec *d, unsigned int j)
 {
 	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
+	char *p = get_p();
 	char *p_s = p;
 	int r;
 
@@ -380,7 +389,7 @@ static inline void do_8(unsigned int t)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
+	char *p = get_p();
 
 	memmove(p, tmp8, sizeof(tmp8) - 1);
 	w = t % 10000;
@@ -412,7 +421,7 @@ static inline void do_9(unsigned int t)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
+	char *p = get_p();
 
 	memmove(p, tmp9, sizeof(tmp9) - 1);
 	w = t % 10000;
@@ -444,7 +453,7 @@ static inline void do_10(unsigned int t, unsigned int v)
 {
 	unsigned int w, x;
 	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
+	char *p = get_p();
 
 	memmove(p, tmp10, sizeof(tmp10) - 1);
 	w = t % 10000;
@@ -536,7 +545,7 @@ int main(int argc, char *argv[])
 	struct dec d = {D_ZERO, D_ZERO, 1, 10};
 	unsigned int i, t;
 
-	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
+	fcntl(1, F_SETPIPE_SZ, CHUNKSIZE);
 
 	gentbl();
 
@@ -591,7 +600,7 @@ int main(int argc, char *argv[])
 
 	append(last, sizeof(last) - 1);
 
-	vwrite(1, &buf[wrap(rp)], wp - rp);
+	vwrite(1, get_p_r(), wp - rp);
 
 	return 0;
 }

@@ -9,14 +9,14 @@
 #include <sys/uio.h>
 
 //512KB
-#define BUFSIZE      (CHUNKSIZE * 4)
-#define CHUNKSIZE    (4096 * 32)
+#define CHUNKSIZE    (4096 * 64)
 
-char buf[BUFSIZE + 256] __attribute__((aligned(4096)));
+char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
 unsigned int rp __attribute__((aligned(8)));
 unsigned int wp __attribute__((aligned(8)));
+int f __attribute__((aligned(8)));
 
-#define wrap(wp)    ((wp) & (BUFSIZE - 1))
+#define wrap(wp)    ((wp) & (CHUNKSIZE - 1))
 
 static inline void vwrite(int fd, void *buf, size_t count)
 {
@@ -37,14 +37,25 @@ static inline void vwrite(int fd, void *buf, size_t count)
 	}
 }
 
+static inline char *get_p(void)
+{
+	return &buf2[f][wrap(wp)];
+}
+
+static inline char *get_p_r(void)
+{
+	return &buf2[f][wrap(rp)];
+}
+
 static inline void rb_wrap(unsigned int wp_before)
 {
 	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
+		vwrite(1, &buf2[f][wrap(rp)], CHUNKSIZE);
 		rp += CHUNKSIZE;
+		f = !f;
 	}
 	if (wrap(wp) < wrap(wp_before)) {
-		memmove(&buf[0], &buf[BUFSIZE], wrap(wp));
+		memmove(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
 	}
 }
 
@@ -178,7 +189,7 @@ static int out_bandf(char *buf)
 static void fizzbuzz30(struct dec *d, unsigned int j)
 {
 	unsigned int wp_before = wp;
-	char *p = &buf[wrap(wp)];
+	char *p = get_p();
 	char *p_s = p;
 	int r;
 
@@ -237,7 +248,7 @@ int main(int argc, char *argv[])
 	struct dec d = {D_ZERO, D_ZERO, 1, 10};
 	unsigned int i = 1, j = 0;
 
-	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
+	fcntl(1, F_SETPIPE_SZ, CHUNKSIZE);
 
 	j = 10;
 	for (i = 1; i < 0xfffffff0;) {
@@ -249,7 +260,7 @@ int main(int argc, char *argv[])
 
 	{
 		unsigned int wp_before = wp;
-		char *p = &buf[wrap(wp)];
+		char *p = get_p();
 
 		memmove(p, last, sizeof(last));
 		wp += sizeof(last);
@@ -257,7 +268,7 @@ int main(int argc, char *argv[])
 		rb_wrap(wp_before);
 	}
 
-	vwrite(1, &buf[wrap(rp)], wp - rp);
+	vwrite(1, get_p_r(), wp - rp);
 
 	return 0;
 }
