@@ -9,8 +9,8 @@
 #include <sys/uio.h>
 
 //512KB
-#define BUFSIZE      (CHUNKSIZE * 2)
-#define CHUNKSIZE    (4096 * 64)
+#define BUFSIZE      (CHUNKSIZE * 4)
+#define CHUNKSIZE    (4096 * 32)
 
 char buf[BUFSIZE + 256] __attribute__((aligned(4096)));
 unsigned int rp __attribute__((aligned(8)));
@@ -39,12 +39,12 @@ static inline void vwrite(int fd, void *buf, size_t count)
 
 static inline void rb_wrap(unsigned int wp_before)
 {
-	if (wrap(wp) < wrap(wp_before)) {
-		memmove(&buf[0], &buf[BUFSIZE], wrap(wp));
-	}
 	if (wp - rp >= CHUNKSIZE) {
 		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
 		rp += CHUNKSIZE;
+	}
+	if (wrap(wp) < wrap(wp_before)) {
+		memmove(&buf[0], &buf[BUFSIZE], wrap(wp));
 	}
 }
 
