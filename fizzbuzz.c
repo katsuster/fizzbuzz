@@ -54,6 +54,17 @@ static inline void rb_wrap(unsigned int wp_before)
 	}
 }
 
+static inline void append(const char *str, size_t len)
+{
+	unsigned int wp_before = wp;
+	char *p = &buf[wrap(wp)];
+
+	memcpy(p, str, len);
+	wp += len;
+
+	rb_wrap(wp_before);
+}
+
 static int gentbl(void)
 {
 	int i;
@@ -432,7 +443,7 @@ static inline void do_8(unsigned int t)
 	unsigned int wp_before = wp;
 	char *p = &buf[wrap(wp)];
 
-	memcpy(p, tmp8, sizeof(tmp8));
+	memcpy(p, tmp8, sizeof(tmp8) - 1);
 	w = t % 10000;
 	x = t / 10000;
 
@@ -464,7 +475,7 @@ static inline void do_9(unsigned int t)
 	unsigned int wp_before = wp;
 	char *p = &buf[wrap(wp)];
 
-	memcpy(p, tmp9, sizeof(tmp9));
+	memcpy(p, tmp9, sizeof(tmp9) - 1);
 	w = t % 10000;
 	x = t / 10000;
 
@@ -496,8 +507,7 @@ static inline void do_10(unsigned int t, unsigned int v)
 	unsigned int wp_before = wp;
 	char *p = &buf[wrap(wp)];
 
-	memcpy(p, tmp10, sizeof(tmp10));
-
+	memcpy(p, tmp10, sizeof(tmp10) - 1);
 	w = t % 10000;
 	x = t / 10000;
 
@@ -523,6 +533,58 @@ static inline void do_10(unsigned int t, unsigned int v)
 	rb_wrap(wp_before);
 }
 
+const char tail8[] =
+"99999991\n99999992\n"
+"Fizz\n99999994\nBuzz\n"
+"Fizz\n99999997\n99999998\n"
+"Fizz\nBuzz\n100000001\n"
+"Fizz\n100000003\n100000004\n"
+"FizzBuzz\n100000006\n100000007\n"
+"Fizz\n100000009\nBuzz\n"
+"Fizz\n100000012\n100000013\n"
+"Fizz\nBuzz\n100000016\n"
+"Fizz\n100000018\n100000019\n"
+"FizzBuzz\n";
+
+const char tail9[] =
+"999999991\n999999992\n"
+"Fizz\n999999994\nBuzz\n"
+"Fizz\n999999997\n999999998\n"
+"Fizz\nBuzz\n1000000001\n"
+"Fizz\n1000000003\n1000000004\n"
+"FizzBuzz\n1000000006\n1000000007\n"
+"Fizz\n1000000009\nBuzz\n"
+"Fizz\n1000000012\n1000000013\n"
+"Fizz\nBuzz\n1000000016\n"
+"Fizz\n1000000018\n1000000019\n"
+"FizzBuzz\n";
+
+const char tail10_1[] =
+"1999999981\n1999999982\n"
+"Fizz\n1999999984\nBuzz\n"
+"Fizz\n1999999987\n1999999988\n"
+"Fizz\nBuzz\n1999999991\n"
+"Fizz\n1999999993\n1999999994\n"
+"FizzBuzz\n1999999996\n1999999997\n"
+"Fizz\n1999999999\nBuzz\n"
+"Fizz\n2000000002\n2000000003\n"
+"Fizz\nBuzz\n2000000006\n"
+"Fizz\n2000000008\n2000000009\n"
+"FizzBuzz\n";
+
+const char tail10_3[] =
+"3999999991\n3999999992\n"
+"Fizz\n3999999994\nBuzz\n"
+"Fizz\n3999999997\n3999999998\n"
+"Fizz\nBuzz\n4000000001\n"
+"Fizz\n4000000003\n4000000004\n"
+"FizzBuzz\n4000000006\n4000000007\n"
+"Fizz\n4000000009\nBuzz\n"
+"Fizz\n4000000012\n4000000013\n"
+"Fizz\nBuzz\n4000000016\n"
+"Fizz\n4000000018\n4000000019\n"
+"FizzBuzz\n";
+
 const char last[] =
 "4294967281\n4294967282\n"
 "Fizz\n4294967284\nBuzz\n"
@@ -533,7 +595,7 @@ const char last[] =
 int main(int argc, char *argv[])
 {
 	struct dec d = {D_ZERO, D_ZERO, 1, 10};
-	unsigned int i, t, v;
+	unsigned int i, t;
 
 	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
 
@@ -548,8 +610,7 @@ int main(int argc, char *argv[])
 		do_8(t);
 	}
 
-	d.l = 0xfffffffffffffff6ULL;
-	fizzbuzz30(&d, i + 9);
+	append(tail8, sizeof(tail8) - 1);
 	i += 30;
 	t += 3;
 
@@ -557,57 +618,39 @@ int main(int argc, char *argv[])
 		do_9(t);
 	}
 
-	d.h = 0xf6f6f6f6f6f6f6ffULL;
-	d.l = 0xfffffffffffffff6ULL;
-	fizzbuzz30(&d, i + 9);
+	append(tail9, sizeof(tail9) - 1);
 	i += 30;
 	t += 3;
 
 	t -= 100000000UL;
-	v = 1;
 	for (; i < 1999999980UL; i += 30, t += 3) {
-		do_10(t, v);
+		do_10(t, 1);
 	}
 
-	d.h = 0xf6f6f6f6f6f6f7ffULL;
-	d.l = 0xfffffffffffffef6ULL;
-	fizzbuzz30(&d, i + 9);
+	append(tail10_1, sizeof(tail10_1) - 1);
 	i += 30;
 	t += 3;
 
 	t -= 100000000UL;
-	v = 2;
 	for (; i < 3000000000UL; i += 30, t += 3) {
-		do_10(t, v);
+		do_10(t, 2);
 	}
 
 	t -= 100000000UL;
-	v = 3;
 	for (; i < 3999999990UL; i += 30, t += 3) {
-		do_10(t, v);
+		do_10(t, 3);
 	}
 
-	d.h = 0xf6f6f6f6f6f6f9ffULL;
-	d.l = 0xfffffffffffffff6ULL;
-	fizzbuzz30(&d, i + 9);
+	append(tail10_3, sizeof(tail10_3) - 1);
 	i += 30;
 	t += 3;
 
 	t -= 100000000UL;
-	v = 4;
 	for (; i < 4294967280UL; i += 30, t += 3) {
-		do_10(t, v);
+		do_10(t, 4);
 	}
 
-	{
-		unsigned int wp_before = wp;
-		char *p = &buf[wrap(wp)];
-
-		memcpy(p, last, sizeof(last));
-		wp += sizeof(last);
-
-		rb_wrap(wp_before);
-	}
+	append(last, sizeof(last) - 1);
 
 	vwrite(1, &buf[wrap(rp)], wp - rp);
 
