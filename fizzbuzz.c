@@ -193,9 +193,9 @@ static void my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int 
 
 	sss = tab2[i];
 	sss = (sss << 32) | tab2[j];
-	SET_BUF5(1, sss);
 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = k + '0';
+	SET_BUF5(1, sss);
 }
 
 static void my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int k)
@@ -205,9 +205,9 @@ static void my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int 
 
 	sss = tab2[i];
 	sss = (sss << 32) | tab2[j];
-	SET_BUF6(1, sss);
 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = buf6[0] = k + '0';
+	SET_BUF6(1, sss);
 }
 
 static void my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int k)
@@ -217,9 +217,9 @@ static void my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int 
 
 	sss = tab2[i];
 	sss = (sss << 32) | tab2[j];
-	SET_BUF5(1, sss);
 
 	buf1[0] = buf2[0] = buf3[0] = buf4[0] = buf5[0] = k + '0';
+	SET_BUF5(1, sss);
 }
 
 struct dec {
@@ -238,20 +238,11 @@ struct dec {
 
 static void inc_c(struct dec *d)
 {
-	if (d->l == D_MAX) {
-		d->l = D_ZERO;
-		d->h++;
+	d->l++;
 
-		int ctz = __builtin_ctzll(d->h) & ~0x7;
-		unsigned long long mask = (1ULL << ctz) - 1;
-		d->h |= mask & D_ZERO;
-	} else {
-		d->l++;
-
-		int ctz = __builtin_ctzll(d->l) & ~0x7;
-		unsigned long long mask = (1ULL << ctz) - 1;
-		d->l |= mask & D_ZERO;
-	}
+	int ctz = __builtin_ctzll(d->l) & ~0x7;
+	unsigned long long mask = (1ULL << ctz) - 1;
+	d->l |= mask & D_ZERO;
 }
 
 static void inc_nc(struct dec *d)
