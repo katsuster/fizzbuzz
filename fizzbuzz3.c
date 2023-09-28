@@ -9,16 +9,16 @@
 #include <sys/uio.h>
 
 //512KB
-#define BUFSIZE      (CHUNKSIZE * 4)
-#define CHUNKSIZE    (4096 * 32)
+#define BUFSIZE      (CHUNKSIZE * 2)
+#define CHUNKSIZE    (4096 * 64)
 
-char buf[BUFSIZE + 256];
+char buf[BUFSIZE + 256] __attribute__((aligned(4096)));
 unsigned int rp __attribute__((aligned(8)));
 unsigned int wp __attribute__((aligned(8)));
 
 #define wrap(wp)    ((wp) & (BUFSIZE - 1))
 
-static inline ssize_t vwrite(int fd, void *buf, size_t count)
+static inline void vwrite(int fd, void *buf, size_t count)
 {
 	struct iovec iov;
 	ssize_t n;
@@ -35,8 +35,6 @@ static inline ssize_t vwrite(int fd, void *buf, size_t count)
 		iov.iov_base += n;
 		iov.iov_len -= n;
 	}
-
-	return count;
 }
 
 static inline void rb_wrap(unsigned int wp_before)
@@ -75,7 +73,7 @@ struct dec {
 //convert from digits to characters (ex. 0xf6 - 0xc6 = '0')
 #define D_TOCHR   0xc6c6c6c6c6c6c6c6ULL
 
-static void inc_c(struct dec *d)
+static inline void inc_c(struct dec *d)
 {
 	if (d->l == D_MAX) {
 		d->l = D_ZERO;
@@ -93,12 +91,12 @@ static void inc_c(struct dec *d)
 	}
 }
 
-static void inc_nc(struct dec *d)
+static inline void inc_nc(struct dec *d)
 {
 	d->l++;
 }
 
-static int out_num(char *buf, struct dec *d)
+static inline int out_num(char *buf, struct dec *d)
 {
 	unsigned long long h, l;
 	unsigned long long *b = (void *)buf;
@@ -248,18 +246,9 @@ const char tmp10[] =
 "Fizz\n.........8\n.........9\n"
 "FizzBuzz\n";
 
-static void out_num9(char *buf, unsigned long long l)
+static inline void out_num9(char *buf, unsigned long long l)
 {
-	//unsigned long long h, l;
 	unsigned long long *b = (void *)buf;
-
-	/*h = d->h - D_TOCHR;
-	l = d->l - D_TOCHR;
-
-	h <<= 56;
-	l >>= 8;
-	l |= h;
-	l = htobe64(l);*/
 
 	*b = l;
 }
@@ -326,20 +315,9 @@ static inline void do_9(struct dec *d)
 	rb_wrap(wp_before);
 }
 
-static void out_num10(char *buf, unsigned long long ll, unsigned char cc)
+static inline void out_num10(char *buf, unsigned long long ll, unsigned char cc)
 {
-	//unsigned long long h, l;
 	unsigned long long *b = (void *)(buf + 1);
-	//unsigned char c;
-
-	/*h = d->h - D_TOCHR;
-	l = d->l - D_TOCHR;
-
-	c = (h & 0xff00) >> 8;
-	h <<= 56;
-	l >>= 8;
-	l |= h;
-	l = htobe64(l);*/
 
 	*buf = cc;
 	*b = ll;
@@ -477,16 +455,12 @@ int main(int argc, char *argv[])
 
 	fcntl(1, F_SETPIPE_SZ, BUFSIZE / 2);
 
-	for (; i <= 99999991UL;) {
+	for (; i <= 99999991UL; i += 30) {
 		fizzbuzz30(&d, i + 9);
-
-		i += 30;
 	}
 
-	for (; i < 999999991UL;) {
+	for (; i < 999999991UL; i += 30) {
 		do_9(&d);
-
-		i += 30;
 	}
 
 	append(tail9, sizeof(tail9) - 1);
@@ -513,10 +487,8 @@ int main(int argc, char *argv[])
 
 	d.l = 0xf6f6f6f6f6f6f8f6ULL;
 	d.h = 0xf6f6f6f6f6f6faf6ULL;
-	for (; i < 4294967280UL;) {
+	for (; i < 4294967280UL; i += 30) {
 		do_10(&d);
-
-		i += 30;
 	}
 
 	append(last, sizeof(last) - 1);

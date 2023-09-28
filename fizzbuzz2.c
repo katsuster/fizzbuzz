@@ -9,16 +9,16 @@
 #include <sys/uio.h>
 
 //512KB
-#define BUFSIZE      (CHUNKSIZE * 4)
-#define CHUNKSIZE    (4096 * 32)
+#define BUFSIZE      (CHUNKSIZE * 2)
+#define CHUNKSIZE    (4096 * 64)
 
-char buf[BUFSIZE + 256];
+char buf[BUFSIZE + 256] __attribute__((aligned(4096)));
 unsigned int rp __attribute__((aligned(8)));
 unsigned int wp __attribute__((aligned(8)));
 
 #define wrap(wp)    ((wp) & (BUFSIZE - 1))
 
-static inline ssize_t vwrite(int fd, void *buf, size_t count)
+static inline void vwrite(int fd, void *buf, size_t count)
 {
 	struct iovec iov;
 	ssize_t n;
@@ -35,8 +35,6 @@ static inline ssize_t vwrite(int fd, void *buf, size_t count)
 		iov.iov_base += n;
 		iov.iov_len -= n;
 	}
-
-	return count;
 }
 
 static inline void rb_wrap(unsigned int wp_before)
