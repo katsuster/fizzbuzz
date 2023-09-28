@@ -13,7 +13,8 @@
 #define CHUNKSIZE    (4096 * 32)
 
 char buf[BUFSIZE + 256];
-unsigned int rp, wp;
+unsigned int rp __attribute__((aligned(8)));
+unsigned int wp __attribute__((aligned(8)));
 
 #define wrap(wp)    ((wp) & (BUFSIZE - 1))
 
@@ -41,7 +42,7 @@ static inline ssize_t vwrite(int fd, void *buf, size_t count)
 static inline void rb_wrap(unsigned int wp_before)
 {
 	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+		memmove(&buf[0], &buf[BUFSIZE], wrap(wp));
 	}
 	if (wp - rp >= CHUNKSIZE) {
 		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
@@ -54,7 +55,7 @@ static inline void append(const char *str, size_t len)
 	unsigned int wp_before = wp;
 	char *p = &buf[wrap(wp)];
 
-	memcpy(p, str, len);
+	memmove(p, str, len);
 	wp += len;
 
 	rb_wrap(wp_before);
@@ -134,56 +135,27 @@ static int out_num(char *buf, struct dec *d)
 	return d->ke + 1;
 }
 
-static int out_fizz(char *buf)
+static inline int out_fizz(char *buf)
 {
-	const char *str = "Fizz\n   ";
-	const unsigned long long *s = (const void *)str;
-	unsigned long long *b = (void *)buf;
-
-	*b = *s;
-
+	memmove(buf, "Fizz\n   ", 8);
 	return 5;
 }
 
-static int out_fb(char *buf)
+static inline int out_fb(char *buf)
 {
-	const char *str = "FizzBuzz";
-	const unsigned long long *s = (const void *)str;
-	unsigned long long *b = (void *)buf;
-
-	*b = *s;
-	buf[8] = '\n';
-
+	memmove(buf, "FizzBuzz\n ", 10);
 	return 9;
 }
 
-static int out_fandb(char *buf)
+static inline int out_fandb(char *buf)
 {
-	const char *str = "Fizz\nBuz";
-	const char *str2 = "z\n";
-	const unsigned long long *s = (const void *)str;
-	const unsigned short *s2 = (const void *)str2;
-	unsigned long long *b = (void *)buf;
-	unsigned short *b2 = (void *)buf + 8;
-
-	*b = *s;
-	*b2 = *s2;
-
+	memmove(buf, "Fizz\nBuzz\n", 10);
 	return 10;
 }
 
-static int out_bandf(char *buf)
+static inline int out_bandf(char *buf)
 {
-	const char *str = "Buzz\nFiz";
-	const char *str2 = "z\n";
-	const unsigned long long *s = (const void *)str;
-	const unsigned short *s2 = (const void *)str2;
-	unsigned long long *b = (void *)buf;
-	unsigned short *b2 = (void *)buf + 8;
-
-	*b = *s;
-	*b2 = *s2;
-
+	memmove(buf, "Buzz\nFizz\n", 10);
 	return 10;
 }
 
@@ -298,7 +270,7 @@ static inline void do_9(struct dec *d)
 	char *p = &buf[wrap(wp)];
 	unsigned long long h, l;
 
-	memcpy(p, tmp9, sizeof(tmp9) - 1);
+	memmove(p, tmp9, sizeof(tmp9) - 1);
 
 	h = d->h - D_TOCHR;
 	l = d->l - D_TOCHR;
@@ -381,7 +353,7 @@ static inline void do_10(struct dec *d)
 	unsigned long long l1, l2, l3;
 	unsigned char c1, c2, c3;
 
-	memcpy(p, tmp10, sizeof(tmp10) - 1);
+	memmove(p, tmp10, sizeof(tmp10) - 1);
 
 	h = d->h - D_TOCHR;
 	l = d->l - D_TOCHR;
