@@ -13,7 +13,8 @@
 #define CHUNKSIZE    (4096 * 32)
 
 char buf[BUFSIZE + 256];
-unsigned int rp, wp;
+unsigned int rp __attribute__((aligned(8)));
+unsigned int wp __attribute__((aligned(8)));
 
 #define wrap(wp)    ((wp) & (BUFSIZE - 1))
 
@@ -41,7 +42,7 @@ static inline ssize_t vwrite(int fd, void *buf, size_t count)
 static inline void rb_wrap(unsigned int wp_before)
 {
 	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf[0], &buf[BUFSIZE], wrap(wp));
+		memmove(&buf[0], &buf[BUFSIZE], wrap(wp));
 	}
 	if (wp - rp >= CHUNKSIZE) {
 		vwrite(1, &buf[wrap(rp)], CHUNKSIZE);
@@ -185,13 +186,13 @@ static void fizzbuzz30(struct dec *d, unsigned int j)
 
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_fizz(p);   p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_bandf(p);   p += r;
+	inc_nc(d); r = out_bandf(p);  p += r;
 	inc_nc(d);
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fandb(p);   p += r;
+	inc_nc(d); r = out_fandb(p);  p += r;
 	inc_c(d);
 
 	if (d->next_ke == j) {
@@ -200,26 +201,26 @@ static void fizzbuzz30(struct dec *d, unsigned int j)
 	}
 
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_fizz(p);   p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fb(p);      p += r;
+	inc_nc(d); r = out_fb(p);     p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_fizz(p);   p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_c(d);  r = out_bandf(p);   p += r;
+	inc_c(d);  r = out_bandf(p);  p += r;
 
 	inc_nc(d);
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fandb(p);   p += r;
+	inc_nc(d); r = out_fandb(p);  p += r;
 	inc_nc(d);
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_fizz(p);   p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_c(d);  r = out_fb(p);      p += r;
+	inc_c(d);  r = out_fb(p);     p += r;
 
 	wp += p - p_s;
 
@@ -252,7 +253,7 @@ int main(int argc, char *argv[])
 		unsigned int wp_before = wp;
 		char *p = &buf[wrap(wp)];
 
-		memcpy(p, last, sizeof(last));
+		memmove(p, last, sizeof(last));
 		wp += sizeof(last);
 
 		rb_wrap(wp_before);
