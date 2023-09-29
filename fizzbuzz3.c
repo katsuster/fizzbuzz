@@ -177,13 +177,13 @@ static void fizzbuzz30(struct dec *d, unsigned int j)
 
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_fizz(p);   p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_bandf(p);   p += r;
+	inc_nc(d); r = out_bandf(p);  p += r;
 	inc_nc(d);
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fandb(p);   p += r;
+	inc_nc(d); r = out_fandb(p);  p += r;
 	inc_c(d);
 
 	if (d->next_ke == j) {
@@ -192,26 +192,26 @@ static void fizzbuzz30(struct dec *d, unsigned int j)
 	}
 
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_fizz(p);   p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fb(p);      p += r;
+	inc_nc(d); r = out_fb(p);     p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_fizz(p);   p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_c(d);  r = out_bandf(p);   p += r;
+	inc_c(d);  r = out_bandf(p);  p += r;
 
 	inc_nc(d);
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fandb(p);   p += r;
+	inc_nc(d); r = out_fandb(p);  p += r;
 	inc_nc(d);
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_nc(d); r = out_fizz(p);    p += r;
+	inc_nc(d); r = out_fizz(p);   p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
 	inc_nc(d); r = out_num(p, d); p += r;
-	inc_c(d);  r = out_fb(p);      p += r;
+	inc_c(d);  r = out_fb(p);     p += r;
 
 	wp += p - p_s;
 
