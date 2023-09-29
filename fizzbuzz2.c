@@ -235,36 +235,17 @@ static void fizzbuzz30(struct dec *d, unsigned int j)
 	rb_wrap(wp_before);
 }
 
-const char last[] =
-"4294967281\n4294967282\n"
-"Fizz\n4294967284\nBuzz\n"
-"Fizz\n4294967287\n4294967288\n"
-"Fizz\nBuzz\n4294967291\n"
-"Fizz\n4294967293\n4294967294\n";
-
 int main(int argc, char *argv[])
 {
 	struct dec d = {D_ZERO, D_ZERO, 1, 10};
-	unsigned int i = 1, j = 0;
+	unsigned long long int i;
 
 	fcntl(1, F_SETPIPE_SZ, CHUNKSIZE);
 
-	j = 10;
-	for (i = 1; i < 0xfffffff0;) {
-		fizzbuzz30(&d, j);
+	for (i = 1; i < 0xffffffff;) {
+		fizzbuzz30(&d, i + 9);
 
-		j += 30;
 		i += 30;
-	}
-
-	{
-		unsigned int wp_before = wp;
-		char *p = get_p();
-
-		memmove(p, last, sizeof(last));
-		wp += sizeof(last);
-
-		rb_wrap(wp_before);
 	}
 
 	vwrite(1, get_p_r(), wp - rp);
