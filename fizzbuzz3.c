@@ -79,14 +79,15 @@ struct dec {
 
 //8 digits, offset 0xf6 (ff: 9, fe: 8, ..., f6: 0)
 #define D_ZERO    0xf6f6f6f6f6f6f6f6ULL
-#define D_ONE     0xf6f6f6f6f6f6f6f7ULL
 #define D_MAX     0xffffffffffffffffULL
 //convert from digits to characters (ex. 0xf6 - 0xc6 = '0')
 #define D_TOCHR   0xc6c6c6c6c6c6c6c6ULL
 
-static inline void inc_c(struct dec *d)
+static void inc_c(struct dec *d)
 {
-	if (d->l == D_MAX) {
+	d->l++;
+
+	if (d->l == 0) {
 		d->l = D_ZERO;
 		d->h++;
 
@@ -94,8 +95,6 @@ static inline void inc_c(struct dec *d)
 		unsigned long long mask = (1ULL << ctz) - 1;
 		d->h |= mask & D_ZERO;
 	} else {
-		d->l++;
-
 		int ctz = __builtin_ctzll(d->l) & ~0x7;
 		unsigned long long mask = (1ULL << ctz) - 1;
 		d->l |= mask & D_ZERO;
@@ -217,19 +216,6 @@ static void fizzbuzz30(struct dec *d, unsigned int j)
 
 	rb_wrap(wp_before);
 }
-
-const char tmp8[] =
-".......1\n.......2\n"
-"Fizz\n.......4\nBuzz\n"
-"Fizz\n.......7\n.......8\n"
-"Fizz\nBuzz\n.......1\n"
-"Fizz\n.......3\n.......4\n"
-"FizzBuzz\n.......6\n.......7\n"
-"Fizz\n.......9\nBuzz\n"
-"Fizz\n.......2\n.......3\n"
-"Fizz\nBuzz\n.......6\n"
-"Fizz\n.......8\n.......9\n"
-"FizzBuzz\n";
 
 const char tmp9[] =
 "........1\n........2\n"
