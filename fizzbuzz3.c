@@ -55,7 +55,7 @@ static inline void rb_wrap(unsigned int wp_before)
 		f = !f;
 	}
 	if (wrap(wp) < wrap(wp_before)) {
-		memmove(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
+		memcpy(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
 	}
 }
 
@@ -64,7 +64,7 @@ static inline void append(const char *str, size_t len)
 	unsigned int wp_before = wp;
 	char *p = get_p();
 
-	memmove(p, str, len);
+	memcpy(p, str, len);
 	wp += len;
 
 	rb_wrap(wp_before);
@@ -285,7 +285,7 @@ static inline void do_9(struct dec *d)
 	char *p = get_p();
 	unsigned long long h, l;
 
-	memmove(p, tmp9, sizeof(tmp9) - 1);
+	memcpy(p, tmp9, sizeof(tmp9) - 1);
 
 	h = d->h - D_TOCHR;
 	l = d->l - D_TOCHR;
@@ -357,7 +357,7 @@ static inline void do_10(struct dec *d)
 	unsigned long long l1, l2, l3;
 	unsigned char c1, c2, c3;
 
-	memmove(p, tmp10, sizeof(tmp10) - 1);
+	memcpy(p, tmp10, sizeof(tmp10) - 1);
 
 	h = d->h - D_TOCHR;
 	l = d->l - D_TOCHR;

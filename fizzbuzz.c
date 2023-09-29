@@ -58,7 +58,7 @@ static inline void rb_wrap(unsigned int wp_before)
 		f = !f;
 	}
 	if (wrap(wp) < wrap(wp_before)) {
-		memmove(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
+		memcpy(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
 	}
 }
 
@@ -67,7 +67,7 @@ static inline void append(const char *str, size_t len)
 	unsigned int wp_before = wp;
 	char *p = get_p();
 
-	memmove(p, str, len);
+	memcpy(p, str, len);
 	wp += len;
 
 	rb_wrap(wp_before);
@@ -293,25 +293,25 @@ static int out_num(char *buf, struct dec *d)
 
 static inline int out_fizz(char *buf)
 {
-	memmove(buf, "Fizz\n   ", 8);
+	memcpy(buf, "Fizz\n   ", 8);
 	return 5;
 }
 
 static inline int out_fb(char *buf)
 {
-	memmove(buf, "FizzBuzz\n ", 10);
+	memcpy(buf, "FizzBuzz\n ", 10);
 	return 9;
 }
 
 static inline int out_fandb(char *buf)
 {
-	memmove(buf, "Fizz\nBuzz\n", 10);
+	memcpy(buf, "Fizz\nBuzz\n", 10);
 	return 10;
 }
 
 static inline int out_bandf(char *buf)
 {
-	memmove(buf, "Buzz\nFizz\n", 10);
+	memcpy(buf, "Buzz\nFizz\n", 10);
 	return 10;
 }
 
@@ -410,7 +410,7 @@ static inline void do_8(unsigned int t)
 	unsigned int wp_before = wp;
 	char *p = get_p();
 
-	memmove(p, tmp8, sizeof(tmp8) - 1);
+	memcpy(p, tmp8, sizeof(tmp8) - 1);
 	w = t % 10000;
 	x = t / 10000;
 
@@ -442,7 +442,7 @@ static inline void do_9(unsigned int t)
 	unsigned int wp_before = wp;
 	char *p = get_p();
 
-	memmove(p, tmp9, sizeof(tmp9) - 1);
+	memcpy(p, tmp9, sizeof(tmp9) - 1);
 	w = t % 10000;
 	x = t / 10000;
 
@@ -474,7 +474,7 @@ static inline void do_10(unsigned int t, unsigned int v)
 	unsigned int wp_before = wp;
 	char *p = get_p();
 
-	memmove(p, tmp10, sizeof(tmp10) - 1);
+	memcpy(p, tmp10, sizeof(tmp10) - 1);
 	w = t % 10000;
 	x = t / 10000;
 

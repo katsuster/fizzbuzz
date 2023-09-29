@@ -55,7 +55,7 @@ static inline void rb_wrap(unsigned int wp_before)
 		f = !f;
 	}
 	if (wrap(wp) < wrap(wp_before)) {
-		memmove(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
+		memcpy(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
 	}
 }
 
