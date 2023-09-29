@@ -143,27 +143,56 @@ static inline int out_num(char *buf, struct dec *d)
 	return d->ke + 1;
 }
 
-static inline int out_fizz(char *buf)
+static int out_fizz(char *buf)
 {
-	memmove(buf, "Fizz\n   ", 8);
+	const char *str = "Fizz\n   ";
+	const unsigned long long *s = (const void *)str;
+	unsigned long long *b = (void *)buf;
+
+	*b = *s;
+
 	return 5;
 }
 
-static inline int out_fb(char *buf)
+static int out_fb(char *buf)
 {
-	memmove(buf, "FizzBuzz\n ", 10);
+	const char *str = "FizzBuzz";
+	const unsigned long long *s = (const void *)str;
+	unsigned long long *b = (void *)buf;
+
+	*b = *s;
+	buf[8] = '\n';
+
 	return 9;
 }
 
-static inline int out_fandb(char *buf)
+static int out_fandb(char *buf)
 {
-	memmove(buf, "Fizz\nBuzz\n", 10);
+	const char *str = "Fizz\nBuz";
+	const char *str2 = "z\n";
+	const unsigned long long *s = (const void *)str;
+	const unsigned short *s2 = (const void *)str2;
+	unsigned long long *b = (void *)buf;
+	unsigned short *b2 = (void *)buf + 8;
+
+	*b = *s;
+	*b2 = *s2;
+
 	return 10;
 }
 
-static inline int out_bandf(char *buf)
+static int out_bandf(char *buf)
 {
-	memmove(buf, "Buzz\nFizz\n", 10);
+	const char *str = "Buzz\nFiz";
+	const char *str2 = "z\n";
+	const unsigned long long *s = (const void *)str;
+	const unsigned short *s2 = (const void *)str2;
+	unsigned long long *b = (void *)buf;
+	unsigned short *b2 = (void *)buf + 8;
+
+	*b = *s;
+	*b2 = *s2;
+
 	return 10;
 }
 
