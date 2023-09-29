@@ -117,9 +117,28 @@ static int gentbl(void)
 	*((unsigned long long *)&buf5[OFF]) = VAL; \
 	*((unsigned long long *)&buf6[OFF]) = VAL
 
+#define CALC_P(KE, N, OFF)    (((KE) + 1) * (N) + (OFF))
+
+#define P_00(KE)    CALC_P((KE),  0,  0)
+#define P_01(KE)    CALC_P((KE),  1,  0)
+#define P_02(KE)    CALC_P((KE),  2,  5)
+#define P_03(KE)    CALC_P((KE),  3, 15)
+#define P_04(KE)    CALC_P((KE),  4, 15)
+#define P_05(KE)    CALC_P((KE),  5, 25)
+#define P_06(KE)    CALC_P((KE),  6, 30)
+#define P_07(KE)    CALC_P((KE),  7, 30)
+#define P_08(KE)    CALC_P((KE),  8, 39)
+#define P_09(KE)    CALC_P((KE),  9, 39)
+#define P_10(KE)    CALC_P((KE), 10, 44)
+#define P_11(KE)    CALC_P((KE), 11, 54)
+#define P_12(KE)    CALC_P((KE), 12, 54)
+#define P_13(KE)    CALC_P((KE), 13, 64)
+#define P_14(KE)    CALC_P((KE), 14, 69)
+#define P_15(KE)    CALC_P((KE), 15, 69)
+
 static void my_itoa8_1(char *buf, unsigned int i, unsigned int j)
 {
-	DEF_BUF5(0, 9, 23, 42, 51);
+	DEF_BUF5(P_00(8), P_01(8), P_02(8), P_03(8), P_04(8));
 	unsigned long long sss;
 
 	sss = tab2[i];
@@ -134,7 +153,7 @@ static void my_itoa8_1(char *buf, unsigned int i, unsigned int j)
 
 static void my_itoa8_2(char *buf, unsigned int i, unsigned int j)
 {
-	DEF_BUF6(70, 84, 93, 111, 120, 134);
+	DEF_BUF6(P_05(8), P_06(8), P_07(8), P_08(8), P_09(8), P_10(8));
 	unsigned long long sss;
 
 	sss = tab2[i];
@@ -150,7 +169,7 @@ static void my_itoa8_2(char *buf, unsigned int i, unsigned int j)
 
 static void my_itoa8_3(char *buf, unsigned int i, unsigned int j)
 {
-	DEF_BUF5(153, 162, 181, 195, 204);
+	DEF_BUF5(P_11(8), P_12(8), P_13(8), P_14(8), P_15(8));
 	unsigned long long sss;
 
 	sss = tab2[i];
@@ -165,7 +184,7 @@ static void my_itoa8_3(char *buf, unsigned int i, unsigned int j)
 
 static void my_itoa9_1(char *buf, unsigned int i, unsigned int j)
 {
-	DEF_BUF5(0, 10, 25, 45, 55);
+	DEF_BUF5(P_00(9), P_01(9), P_02(9), P_03(9), P_04(9));
 	unsigned long long sss;
 
 	sss = tab2[i];
@@ -175,7 +194,7 @@ static void my_itoa9_1(char *buf, unsigned int i, unsigned int j)
 
 static void my_itoa9_2(char *buf, unsigned int i, unsigned int j)
 {
-	DEF_BUF6(75, 90, 100, 119, 129, 144);
+	DEF_BUF6(P_05(9), P_06(9), P_07(9), P_08(9), P_09(9), P_10(9));
 	unsigned long long sss;
 
 	sss = tab2[i];
@@ -185,7 +204,7 @@ static void my_itoa9_2(char *buf, unsigned int i, unsigned int j)
 
 static void my_itoa9_3(char *buf, unsigned int i, unsigned int j)
 {
-	DEF_BUF5(164, 174, 194, 209, 219);
+	DEF_BUF5(P_11(9), P_12(9), P_13(9), P_14(9), P_15(9));
 	unsigned long long sss;
 
 	sss = tab2[i];
@@ -195,7 +214,7 @@ static void my_itoa9_3(char *buf, unsigned int i, unsigned int j)
 
 static void my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
-	DEF_BUF5(0, 11, 27, 48, 59);
+	DEF_BUF5(P_00(10), P_01(10), P_02(10), P_03(10), P_04(10));
 	unsigned long long sss;
 
 	sss = tab2[i];
@@ -207,7 +226,7 @@ static void my_itoa10_1(char *buf, unsigned int i, unsigned int j, unsigned int 
 
 static void my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
-	DEF_BUF6(80, 96, 107, 127, 138, 154);
+	DEF_BUF6(P_05(10), P_06(10), P_07(10), P_08(10), P_09(10), P_10(10));
 	unsigned long long sss;
 
 	sss = tab2[i];
@@ -219,7 +238,7 @@ static void my_itoa10_2(char *buf, unsigned int i, unsigned int j, unsigned int 
 
 static void my_itoa10_3(char *buf, unsigned int i, unsigned int j, unsigned int k)
 {
-	DEF_BUF5(175, 186, 207, 223, 234);
+	DEF_BUF5(P_11(10), P_12(10), P_13(10), P_14(10), P_15(10));
 	unsigned long long sss;
 
 	sss = tab2[i];
