@@ -467,17 +467,10 @@ const char tail10_3[] =
 "Fizz\n4000000018\n4000000019\n"
 "FizzBuzz\n";
 
-const char last[] =
-"4294967281\n4294967282\n"
-"Fizz\n4294967284\nBuzz\n"
-"Fizz\n4294967287\n4294967288\n"
-"Fizz\nBuzz\n4294967291\n"
-"Fizz\n4294967293\n4294967294\n";
-
 int main(int argc, char *argv[])
 {
 	struct dec d = {D_ZERO, D_ZERO, 1, 10};
-	unsigned int i = 1;
+	unsigned long long int i = 1;
 
 	fcntl(1, F_SETPIPE_SZ, CHUNKSIZE);
 
@@ -517,7 +510,9 @@ int main(int argc, char *argv[])
 		do_10(&d);
 	}
 
-	append(last, sizeof(last) - 1);
+	for (; i < 0xffffffffUL; i += 30) {
+		fizzbuzz30(&d, i + 9);
+	}
 
 	vwrite(1, get_p_r(), wp - rp);
 
