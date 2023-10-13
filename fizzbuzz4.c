@@ -12,14 +12,14 @@
 //512KB
 #define CHUNKSIZE    (4096 * 64)
 
-char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
-uint32_t rp __attribute__((aligned(8)));
-uint32_t wp __attribute__((aligned(8)));
-int f __attribute__((aligned(8)));
+static char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
+static uint32_t rp __attribute__((aligned(8)));
+static uint32_t wp __attribute__((aligned(8)));
+static int f __attribute__((aligned(8)));
 
 #define wrap(wp)    ((wp) & (CHUNKSIZE - 1))
 
-static void vwrite(int fd, void *buf, size_t count)
+static inline void vwrite(int fd, void *buf, size_t count)
 {
 	struct iovec iov;
 	ssize_t n;
@@ -38,17 +38,17 @@ static void vwrite(int fd, void *buf, size_t count)
 	}
 }
 
-static char *get_p(void)
+static inline char *get_p(void)
 {
 	return &buf2[f][wrap(wp)];
 }
 
-static char *get_p_r(void)
+static inline char *get_p_r(void)
 {
 	return &buf2[f][wrap(rp)];
 }
 
-static void rb_wrap(uint32_t wp_before)
+static inline void rb_wrap(uint32_t wp_before)
 {
 	if (wp - rp >= CHUNKSIZE) {
 		vwrite(1, &buf2[f][wrap(rp)], CHUNKSIZE);
@@ -64,7 +64,7 @@ struct dec {
 	uint64_t h;
 	uint64_t l;
 	int ke;
-	uint32_t next_ke;
+	uint64_t next_ke;
 };
 
 //8 digits, offset 0xf6 (ff: 9, fe: 8, ..., f6: 0)
@@ -294,7 +294,7 @@ static int out_9bandf(char *buf)
 	return 12;
 }
 
-static void fizzbuzz30(struct dec *d, uint32_t j)
+static void fizzbuzz30(struct dec *d, uint64_t j)
 {
 	uint64_t h, l;
 	uint32_t wp_before = wp;
@@ -356,11 +356,10 @@ static void fizzbuzz30(struct dec *d, uint32_t j)
 int main(int argc, char *argv[])
 {
 	struct dec d = {D_ZERO, D_ZERO, 0, 1};
-	uint64_t i = 1;
 
 	fcntl(1, F_SETPIPE_SZ, CHUNKSIZE);
 
-	for (; i <= 0xffffffffUL/10; i += 3) {
+	for (uint64_t i = 1; i <= 0xffffffffUL/10; i += 3) {
 		fizzbuzz30(&d, i);
 	}
 
