@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,8 +13,8 @@
 #define CHUNKSIZE    (4096 * 64)
 
 char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
-unsigned int rp __attribute__((aligned(8)));
-unsigned int wp __attribute__((aligned(8)));
+uint32_t rp __attribute__((aligned(8)));
+uint32_t wp __attribute__((aligned(8)));
 int f __attribute__((aligned(8)));
 
 #define wrap(wp)    ((wp) & (CHUNKSIZE - 1))
@@ -47,7 +48,7 @@ static inline char *get_p_r(void)
 	return &buf2[f][wrap(rp)];
 }
 
-static inline void rb_wrap(unsigned int wp_before)
+static inline void rb_wrap(uint32_t wp_before)
 {
 	if (wp - rp >= CHUNKSIZE) {
 		vwrite(1, &buf2[f][wrap(rp)], CHUNKSIZE);
@@ -61,7 +62,7 @@ static inline void rb_wrap(unsigned int wp_before)
 
 static inline void append(const char *str, size_t len)
 {
-	unsigned int wp_before = wp;
+	uint32_t wp_before = wp;
 	char *p = get_p();
 
 	memcpy(p, str, len);
@@ -71,10 +72,10 @@ static inline void append(const char *str, size_t len)
 }
 
 struct dec {
-	unsigned long long h;
-	unsigned long long l;
+	uint64_t h;
+	uint64_t l;
 	int ke;
-	unsigned int next_ke;
+	uint32_t next_ke;
 };
 
 //8 digits, offset 0xf6 (ff: 9, fe: 8, ..., f6: 0)
@@ -92,11 +93,11 @@ static void inc_c(struct dec *d)
 		d->h++;
 
 		int ctz = __builtin_ctzll(d->h) & ~0x7;
-		unsigned long long mask = (1ULL << ctz) - 1;
+		uint64_t mask = (1ULL << ctz) - 1;
 		d->h |= mask & D_ZERO;
 	} else {
 		int ctz = __builtin_ctzll(d->l) & ~0x7;
-		unsigned long long mask = (1ULL << ctz) - 1;
+		uint64_t mask = (1ULL << ctz) - 1;
 		d->l |= mask & D_ZERO;
 	}
 }
@@ -108,8 +109,8 @@ static inline void inc_nc(struct dec *d)
 
 static inline int out_num(char *buf, struct dec *d)
 {
-	unsigned long long h, l;
-	unsigned long long *b = (void *)buf;
+	uint64_t h, l;
+	uint64_t *b = (void *)buf;
 
 	h = d->h - D_TOCHR;
 	l = d->l - D_TOCHR;
@@ -146,8 +147,8 @@ static inline int out_num(char *buf, struct dec *d)
 static int out_fizz(char *buf)
 {
 	const char *str = "Fizz\n   ";
-	const unsigned long long *s = (const void *)str;
-	unsigned long long *b = (void *)buf;
+	const uint64_t *s = (const void *)str;
+	uint64_t *b = (void *)buf;
 
 	*b = *s;
 
@@ -157,8 +158,8 @@ static int out_fizz(char *buf)
 static int out_fb(char *buf)
 {
 	const char *str = "FizzBuzz";
-	const unsigned long long *s = (const void *)str;
-	unsigned long long *b = (void *)buf;
+	const uint64_t *s = (const void *)str;
+	uint64_t *b = (void *)buf;
 
 	*b = *s;
 	buf[8] = '\n';
@@ -170,10 +171,10 @@ static int out_fandb(char *buf)
 {
 	const char *str = "Fizz\nBuz";
 	const char *str2 = "z\n";
-	const unsigned long long *s = (const void *)str;
-	const unsigned short *s2 = (const void *)str2;
-	unsigned long long *b = (void *)buf;
-	unsigned short *b2 = (void *)buf + 8;
+	const uint64_t *s = (const void *)str;
+	const uint16_t *s2 = (const void *)str2;
+	uint64_t *b = (void *)buf;
+	uint16_t *b2 = (void *)buf + 8;
 
 	*b = *s;
 	*b2 = *s2;
@@ -185,10 +186,10 @@ static int out_bandf(char *buf)
 {
 	const char *str = "Buzz\nFiz";
 	const char *str2 = "z\n";
-	const unsigned long long *s = (const void *)str;
-	const unsigned short *s2 = (const void *)str2;
-	unsigned long long *b = (void *)buf;
-	unsigned short *b2 = (void *)buf + 8;
+	const uint64_t *s = (const void *)str;
+	const uint16_t *s2 = (const void *)str2;
+	uint64_t *b = (void *)buf;
+	uint16_t *b2 = (void *)buf + 8;
 
 	*b = *s;
 	*b2 = *s2;
@@ -196,9 +197,9 @@ static int out_bandf(char *buf)
 	return 10;
 }
 
-static void fizzbuzz30(struct dec *d, unsigned int j)
+static void fizzbuzz30(struct dec *d, uint32_t j)
 {
-	unsigned int wp_before = wp;
+	uint32_t wp_before = wp;
 	char *p = get_p();
 	char *p_s = p;
 	int r;
@@ -272,18 +273,18 @@ const char tmp10[] =
 "Fizz\n.........8\n.........9\n"
 "FizzBuzz\n";
 
-static inline void out_num9(char *buf, unsigned long long l)
+static inline void out_num9(char *buf, uint64_t l)
 {
-	unsigned long long *b = (void *)buf;
+	uint64_t *b = (void *)buf;
 
 	*b = l;
 }
 
 static inline void do_9(struct dec *d)
 {
-	unsigned int wp_before = wp;
+	uint32_t wp_before = wp;
 	char *p = get_p();
-	unsigned long long h, l;
+	uint64_t h, l;
 
 	memcpy(p, tmp9, sizeof(tmp9) - 1);
 
@@ -341,9 +342,9 @@ static inline void do_9(struct dec *d)
 	rb_wrap(wp_before);
 }
 
-static inline void out_num10(char *buf, unsigned long long ll, unsigned char cc)
+static inline void out_num10(char *buf, uint64_t ll, unsigned char cc)
 {
-	unsigned long long *b = (void *)(buf + 1);
+	uint64_t *b = (void *)(buf + 1);
 
 	*buf = cc;
 	*b = ll;
@@ -351,10 +352,10 @@ static inline void out_num10(char *buf, unsigned long long ll, unsigned char cc)
 
 static inline void do_10(struct dec *d)
 {
-	unsigned int wp_before = wp;
+	uint32_t wp_before = wp;
 	char *p = get_p();
-	unsigned long long h, l;
-	unsigned long long l1, l2, l3;
+	uint64_t h, l;
+	uint64_t l1, l2, l3;
 	unsigned char c1, c2, c3;
 
 	memcpy(p, tmp10, sizeof(tmp10) - 1);
@@ -470,7 +471,7 @@ const char tail10_3[] =
 int main(int argc, char *argv[])
 {
 	struct dec d = {D_ZERO, D_ZERO, 1, 10};
-	unsigned long long int i = 1;
+	uint64_t i = 1;
 
 	fcntl(1, F_SETPIPE_SZ, CHUNKSIZE);
 
