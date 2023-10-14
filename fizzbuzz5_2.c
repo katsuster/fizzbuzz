@@ -15,52 +15,7 @@
 #define CHUNKSIZE    (4096 * 64)
 
 static char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
-static uint32_t rp __attribute__((aligned(8)));
-static uint32_t wp __attribute__((aligned(8)));
 static int f __attribute__((aligned(8)));
-
-#define wrap(wp)    ((wp) & (CHUNKSIZE - 1))
-
-static inline void vwrite(int fd, void *buf, size_t count)
-{
-	struct iovec iov;
-	ssize_t n;
-
-	iov.iov_base = buf;
-	iov.iov_len = count;
-
-	while (iov.iov_len > 0) {
-		n = vmsplice(1, &iov, 1, 0);
-		if (n < 0) {
-			perror("vmsplice");
-			exit(1);
-		}
-		iov.iov_base += n;
-		iov.iov_len -= n;
-	}
-}
-
-static inline char *get_p(void)
-{
-	return &buf2[f][wrap(wp)];
-}
-
-static inline char *get_p_r(void)
-{
-	return &buf2[f][wrap(rp)];
-}
-
-static inline void rb_wrap(uint32_t wp_before)
-{
-	if (wp - rp >= CHUNKSIZE) {
-		vwrite(1, &buf2[f][wrap(rp)], CHUNKSIZE);
-		rp += CHUNKSIZE;
-		f = !f;
-	}
-	if (wrap(wp) < wrap(wp_before)) {
-		memcpy(&buf2[f][0], &buf2[!f][CHUNKSIZE], wrap(wp));
-	}
-}
 
 static const __m128i mask_shuffle[] = {
 	{0x0706050403020100ULL, 0x0f0e0d0c0b0a0908ULL},
@@ -337,7 +292,6 @@ int main(int argc, char *argv[])
 
 	char *p = buf2[f];
 	for (uint64_t i = 1; i <= 0xffffffffUL/10; i += 3) {
-		uint64_t j = i;
 		__m128i v;
 
 		v = to_num(d, ke);
@@ -353,7 +307,7 @@ int main(int argc, char *argv[])
 		p += out_8fandb(p);
 		d = inc_c(d);
 
-		if (next_ke == j) {
+		if (next_ke == i) {
 			ke++;
 			next_ke *= 10;
 		}
@@ -410,7 +364,23 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	vwrite(1, get_p_r(), wp - rp);
+	{
+		struct iovec iov;
+		ssize_t nn;
+
+		iov.iov_base = buf2[f];
+		iov.iov_len = CHUNKSIZE;
+
+		do {
+			nn = vmsplice(1, &iov, 1, 0);
+			if (nn < 0) {
+				perror("vmsplice");
+				exit(1);
+			}
+			iov.iov_base += nn;
+			iov.iov_len -= nn;
+		} while (iov.iov_len > 0);
+	}
 
 	return 0;
 }
