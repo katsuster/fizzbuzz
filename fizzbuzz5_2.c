@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
 			iov.iov_base = buf2[f];
 			iov.iov_len = CHUNKSIZE;
 
-			do {
+			while (iov.iov_len > 0) {
 				nn = vmsplice(1, &iov, 1, 0);
 				if (nn < 0) {
 					perror("vmsplice");
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
 				}
 				iov.iov_base += nn;
 				iov.iov_len -= nn;
-			} while (iov.iov_len > 0);
+			}
 
 			f = !f;
 			memcpy(buf2[f], &buf2[!f][CHUNKSIZE], n);
@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
 		iov.iov_base = buf2[f];
 		iov.iov_len = CHUNKSIZE;
 
-		do {
+		while (iov.iov_len > 0) {
 			nn = vmsplice(1, &iov, 1, 0);
 			if (nn < 0) {
 				perror("vmsplice");
@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
 			}
 			iov.iov_base += nn;
 			iov.iov_len -= nn;
-		} while (iov.iov_len > 0);
+		}
 	}
 
 	return 0;
