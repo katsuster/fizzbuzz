@@ -82,45 +82,29 @@ static int out_two(char *buf, const char *str)
 
 static int out_1fizz(char *buf)
 {
-	const char *str = "1\nFizz\n ";
-	const uint64_t *s = (const void *)str;
-	uint64_t *b = (void *)buf;
-
-	*b = *s;
-
+	//"1\nFizz\n " = 0x200a7a7a69460a31
+	*((uint64_t *)buf) = 0x200a7a7a69460a31;
 	return 7;
 }
 
 static int out_2fizz(char *buf)
 {
-	const char *str = "2\nFizz\n ";
-	const uint64_t *s = (const void *)str;
-	uint64_t *b = (void *)buf;
-
-	*b = *s;
-
+	//"2\nFizz\n " = 0x200a7a7a69460a32
+	*((uint64_t *)buf) = 0x200a7a7a69460a32;
 	return 7;
 }
 
 static int out_6fizz(char *buf)
 {
-	const char *str = "6\nFizz\n ";
-	const uint64_t *s = (const void *)str;
-	uint64_t *b = (void *)buf;
-
-	*b = *s;
-
+	//"6\nFizz\n " = 0x200a7a7a69460a36
+	*((uint64_t *)buf) = 0x200a7a7a69460a36;
 	return 7;
 }
 
 static int out_7fizz(char *buf)
 {
-	const char *str = "7\nFizz\n ";
-	const uint64_t *s = (const void *)str;
-	uint64_t *b = (void *)buf;
-
-	*b = *s;
-
+	//"7\nFizz\n " = 0x200a7a7a69460a37
+	*((uint64_t *)buf) = 0x200a7a7a69460a37;
 	return 7;
 }
 
@@ -128,91 +112,55 @@ static int out_7fizz(char *buf)
 
 static int out_4fb(char *buf)
 {
-	const char *str = "4\nFizzBu";
-	const char *str2 = "zz\n";
-	const uint64_t *s = (const void *)str;
-	const uint32_t *s2 = (const void *)str2;
-	uint64_t *b = (void *)buf;
-	uint32_t *b2 = (void *)buf + 8;
-
-	*b = *s;
-	*b2 = *s2;
-
+	//"4\nFizzBu" = 0x75427a7a69460a34
+	//"zz\n" = 0x2e0a7a7a
+	*((uint64_t *)buf) = 0x75427a7a69460a34;
+	*((uint32_t *)(buf + 8)) = 0x2e0a7a7a;
 	return 11;
 }
 
 static int out_9fb(char *buf)
 {
-	const char *str = "9\nFizzBu";
-	const char *str2 = "zz\n";
-	const uint64_t *s = (const void *)str;
-	const uint32_t *s2 = (const void *)str2;
-	uint64_t *b = (void *)buf;
-	uint32_t *b2 = (void *)buf + 8;
-
-	*b = *s;
-	*b2 = *s2;
-
+	//"9\nFizzBu" = 0x75427a7a69460a39
+	//"zz\n" = 0x2e0a7a7a
+	*((uint64_t *)buf) = 0x75427a7a69460a39;
+	*((uint32_t *)(buf + 8)) = 0x2e0a7a7a;
 	return 11;
 }
 
 static int out_3fandb(char *buf)
 {
-	const char *str = "3\nFizz\nB";
-	const char *str2 = "uzz\n";
-	const uint64_t *s = (const void *)str;
-	const uint32_t *s2 = (const void *)str2;
-	uint64_t *b = (void *)buf;
-	uint32_t *b2 = (void *)buf + 8;
-
-	*b = *s;
-	*b2 = *s2;
-
+	//"3\nFizz\nB" = 0x420a7a7a69460a33
+	//"uzz\n" = 0x0a7a7a75
+	*((uint64_t *)buf) = 0x420a7a7a69460a33;
+	*((uint32_t *)(buf + 8)) = 0x0a7a7a75;
 	return 12;
 }
 
 static int out_8fandb(char *buf)
 {
-	const char *str = "8\nFizz\nB";
-	const char *str2 = "uzz\n";
-	const uint64_t *s = (const void *)str;
-	const uint32_t *s2 = (const void *)str2;
-	uint64_t *b = (void *)buf;
-	uint32_t *b2 = (void *)buf + 8;
-
-	*b = *s;
-	*b2 = *s2;
-
+	//"8\nFizz\nB" = 0x420a7a7a69460a38
+	//"uzz\n" = 0x0a7a7a75
+	*((uint64_t *)buf) = 0x420a7a7a69460a38;
+	*((uint32_t *)(buf + 8)) = 0x0a7a7a75;
 	return 12;
 }
 
 static int out_4bandf(char *buf)
 {
-	const char *str = "4\nBuzz\nF";
-	const char *str2 = "izz\n";
-	const uint64_t *s = (const void *)str;
-	const uint32_t *s2 = (const void *)str2;
-	uint64_t *b = (void *)buf;
-	uint32_t *b2 = (void *)buf + 8;
-
-	*b = *s;
-	*b2 = *s2;
-
+	//"4\nBuzz\nF" = 0x460a7a7a75420a34
+	//"izz\n" = 0x0a7a7a69
+	*((uint64_t *)buf) = 0x460a7a7a75420a34;
+	*((uint32_t *)(buf + 8)) = 0x0a7a7a69;
 	return 12;
 }
 
 static int out_9bandf(char *buf)
 {
-	const char *str = "9\nBuzz\nF";
-	const char *str2 = "izz\n";
-	const uint64_t *s = (const void *)str;
-	const uint32_t *s2 = (const void *)str2;
-	uint64_t *b = (void *)buf;
-	uint32_t *b2 = (void *)buf + 8;
-
-	*b = *s;
-	*b2 = *s2;
-
+	//"9\nBuzz\nF" = 0x460a7a7a75420a39
+	//"izz\n" = 0x0a7a7a69
+	*((uint64_t *)buf) = 0x460a7a7a75420a39;
+	*((uint32_t *)(buf + 8)) = 0x0a7a7a69;
 	return 12;
 }
 
