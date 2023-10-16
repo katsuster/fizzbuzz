@@ -172,7 +172,6 @@ static int out_4fb(char *buf)
 	//"zz\n" = 0x2e0a7a7a
 	__m128i t = _mm_set_epi64x(0x2e0a7a7a, 0x75427a7a69460a34ULL);
 	_mm_storeu_si128((__m128i *)buf, t);
-
 	return 11;
 }
 
@@ -182,7 +181,6 @@ static int out_9fb(char *buf)
 	//"zz\n" = 0x2e0a7a7a
 	__m128i t = _mm_set_epi64x(0x2e0a7a7a, 0x75427a7a69460a39ULL);
 	_mm_storeu_si128((__m128i *)buf, t);
-
 	return 11;
 }
 
@@ -192,7 +190,6 @@ static int out_3fandb(char *buf)
 	//"uzz\n" = 0x0a7a7a75
 	__m128i t = _mm_set_epi64x(0x0a7a7a75, 0x420a7a7a69460a33ULL);
 	_mm_storeu_si128((__m128i *)buf, t);
-
 	return 12;
 }
 
@@ -202,7 +199,6 @@ static int out_8fandb(char *buf)
 	//"uzz\n" = 0x0a7a7a75
 	__m128i t = _mm_set_epi64x(0x0a7a7a75, 0x420a7a7a69460a38ULL);
 	_mm_storeu_si128((__m128i *)buf, t);
-
 	return 12;
 }
 
@@ -212,7 +208,6 @@ static int out_4bandf(char *buf)
 	//"izz\n" = 0x0a7a7a69
 	__m128i t = _mm_set_epi64x(0x0a7a7a69, 0x460a7a7a75420a34ULL);
 	_mm_storeu_si128((__m128i *)buf, t);
-
 	return 12;
 }
 
@@ -222,7 +217,6 @@ static int out_9bandf(char *buf)
 	//"izz\n" = 0x0a7a7a69
 	__m128i t = _mm_set_epi64x(0x0a7a7a69, 0x460a7a7a75420a39ULL);
 	_mm_storeu_si128((__m128i *)buf, t);
-
 	return 12;
 }
 
