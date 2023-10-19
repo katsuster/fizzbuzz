@@ -70,13 +70,45 @@ static int out_fixnum(char *buf, __m128i v, int k)
 	return k;
 }
 
-static int out_two(char *buf, const char *str)
+static int out_1two(char *buf)
 {
-	const uint16_t *s = (const void *)str;
-	uint16_t *b = (void *)buf;
+	//"1\n" = 0x0a31
+	*((uint16_t *)buf) = 0x0a31;
+	return 2;
+}
 
-	*b = *s;
+static int out_2two(char *buf)
+{
+	//"2\n" = 0x0a32
+	*((uint16_t *)buf) = 0x0a32;
+	return 2;
+}
 
+static int out_3two(char *buf)
+{
+	//"3\n" = 0x0a33
+	*((uint16_t *)buf) = 0x0a33;
+	return 2;
+}
+
+static int out_6two(char *buf)
+{
+	//"6\n" = 0x0a36
+	*((uint16_t *)buf) = 0x0a36;
+	return 2;
+}
+
+static int out_7two(char *buf)
+{
+	//"7\n" = 0x0a37
+	*((uint16_t *)buf) = 0x0a37;
+	return 2;
+}
+
+static int out_8two(char *buf)
+{
+	//"8\n" = 0x0a38
+	*((uint16_t *)buf) = 0x0a38;
 	return 2;
 }
 
@@ -108,7 +140,7 @@ static int out_7fizz(char *buf)
 	return 7;
 }
 
-#if 1
+#if 0
 
 static int out_4fb(char *buf)
 {
@@ -238,13 +270,13 @@ int main(int argc, char *argv[])
 
 		v = to_num(d, ke);
 		p += out_fixnum(p, v, ke);
-		p += out_two(p, "1\n");
+		p += out_1two(p);
 		p += out_fixnum(p, v, ke);
 		p += out_2fizz(p);
 		p += out_fixnum(p, v, ke);
 		p += out_4bandf(p);
 		p += out_fixnum(p, v, ke);
-		p += out_two(p, "7\n");
+		p += out_7two(p);
 		p += out_fixnum(p, v, ke);
 		p += out_8fandb(p);
 		d = inc_c(d);
@@ -258,11 +290,11 @@ int main(int argc, char *argv[])
 		p += out_fixnum(p, v, ke);
 		p += out_1fizz(p);
 		p += out_fixnum(p, v, ke);
-		p += out_two(p, "3\n");
+		p += out_3two(p);
 		p += out_fixnum(p, v, ke);
 		p += out_4fb(p);
 		p += out_fixnum(p, v, ke);
-		p += out_two(p, "6\n");
+		p += out_6two(p);
 		p += out_fixnum(p, v, ke);
 		p += out_7fizz(p);
 		p += out_fixnum(p, v, ke);
@@ -271,13 +303,13 @@ int main(int argc, char *argv[])
 
 		v = to_num(d, ke);
 		p += out_fixnum(p, v, ke);
-		p += out_two(p, "2\n");
+		p += out_2two(p);
 		p += out_fixnum(p, v, ke);
 		p += out_3fandb(p);
 		p += out_fixnum(p, v, ke);
 		p += out_6fizz(p);
 		p += out_fixnum(p, v, ke);
-		p += out_two(p, "8\n");
+		p += out_8two(p);
 		p += out_fixnum(p, v, ke);
 		p += out_9fb(p);
 		d = inc_c(d);
