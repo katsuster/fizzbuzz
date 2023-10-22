@@ -37,22 +37,23 @@ static void vwrite(int fd, void *buf, size_t count)
 }
 
 static const __m128i mask_shuffle[] = {
-	{0x0706050403020100ULL, 0x0f0e0d0c0b0a0908ULL},
-	{0x0807060504030201ULL, 0xff0f0e0d0c0b0a09ULL},
-	{0x0908070605040302ULL, 0xffff0f0e0d0c0b0aULL},
-	{0x0a09080706050403ULL, 0xffffff0f0e0d0c0bULL},
-	{0x0b0a090807060504ULL, 0xffffffff0f0e0d0cULL},
-	{0x0c0b0a0908070605ULL, 0xffffffffff0f0e0dULL},
-	{0x0d0c0b0a09080706ULL, 0xffffffffffff0f0eULL},
-	{0x0e0d0c0b0a090807ULL, 0xffffffffffffff0fULL},
-	{0x0f0e0d0c0b0a0908ULL, 0xffffffffffffffffULL},
-	{0xff0f0e0d0c0b0a09ULL, 0xffffffffffffffffULL},
-	{0xffff0f0e0d0c0b0aULL, 0xffffffffffffffffULL},
-	{0xffffff0f0e0d0c0bULL, 0xffffffffffffffffULL},
-	{0xffffffff0f0e0d0cULL, 0xffffffffffffffffULL},
-	{0xffffffffff0f0e0dULL, 0xffffffffffffffffULL},
+	{0xffffffffffffffffULL, 0xffffffffffffffffULL},
+	{0xffffffffffffff0fULL, 0xffffffffffffffffULL},
 	{0xffffffffffff0f0eULL, 0xffffffffffffffffULL},
-	{0xffffffffffffff0fULL, 0xffffffffffffffffULL}
+	{0xffffffffff0f0e0dULL, 0xffffffffffffffffULL},
+	{0xffffffff0f0e0d0cULL, 0xffffffffffffffffULL},
+	{0xffffff0f0e0d0c0bULL, 0xffffffffffffffffULL},
+	{0xffff0f0e0d0c0b0aULL, 0xffffffffffffffffULL},
+	{0xff0f0e0d0c0b0a09ULL, 0xffffffffffffffffULL},
+	{0x0f0e0d0c0b0a0908ULL, 0xffffffffffffffffULL},
+	{0x0e0d0c0b0a090807ULL, 0xffffffffffffff0fULL},
+	{0x0d0c0b0a09080706ULL, 0xffffffffffff0f0eULL},
+	{0x0c0b0a0908070605ULL, 0xffffffffff0f0e0dULL},
+	{0x0b0a090807060504ULL, 0xffffffff0f0e0d0cULL},
+	{0x0a09080706050403ULL, 0xffffff0f0e0d0c0bULL},
+	{0x0908070605040302ULL, 0xffff0f0e0d0c0b0aULL},
+	{0x0807060504030201ULL, 0xff0f0e0d0c0b0a09ULL},
+	{0x0706050403020100ULL, 0x0f0e0d0c0b0a0908ULL},
 };
 
 static __m128i inc_c(__m128i num)
@@ -77,7 +78,7 @@ static __m128i to_num(__m128i num, int k)
 	aaa = _mm_sub_epi64(num, _mm_set1_epi8(0xc6));
 	bbb = _mm_set_epi64x(0x0001020304050607ULL, 0x08090a0b0c0d0e0fULL);
 	aaa = _mm_shuffle_epi8(aaa, bbb);
-	aaa = _mm_shuffle_epi8(aaa, mask_shuffle[16 - k]);
+	aaa = _mm_shuffle_epi8(aaa, mask_shuffle[k]);
 
 	return aaa;
 }
