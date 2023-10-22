@@ -216,6 +216,18 @@ static int out_9bandf(char *buf)
 	return 12;
 }
 
+static inline void memcpy_simple(void *d, void *s, int n)
+{
+	__m128i *dd = d, *ss = s;
+	int i = 0;
+
+	do {
+		_mm_store_si128(dd++, _mm_load_si128(ss++));
+		_mm_store_si128(dd++, _mm_load_si128(ss++));
+		_mm_store_si128(dd++, _mm_load_si128(ss++));
+		_mm_store_si128(dd++, _mm_load_si128(ss++));
+	} while ((i += 64) < n);
+}
 int main(int argc, char *argv[])
 {
 	char *p = buf2[f];
@@ -280,7 +292,7 @@ int main(int argc, char *argv[])
 		if (n >= 0) {
 			vwrite(1, buf2[f], CHUNKSIZE);
 			f = !f;
-			memcpy(buf2[f], &buf2[!f][CHUNKSIZE], n);
+			memcpy_simple(buf2[f], &buf2[!f][CHUNKSIZE], n);
 			p = &buf2[f][n];
 		}
 	}
