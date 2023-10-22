@@ -14,7 +14,9 @@
 //512KB
 #define CHUNKSIZE    (4096 * 64)
 
-char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
+char buf10[CHUNKSIZE + 512] __attribute__((aligned(4096)));
+char buf11[CHUNKSIZE + 512] __attribute__((aligned(4096)));
+char *buf2[2] = {buf10, buf11};
 int f __attribute__((aligned(8)));
 
 static void vwrite(int fd, void *buf, size_t count)
