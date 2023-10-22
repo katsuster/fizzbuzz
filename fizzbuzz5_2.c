@@ -14,8 +14,27 @@
 //512KB
 #define CHUNKSIZE    (4096 * 64)
 
-static char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
-static int f __attribute__((aligned(8)));
+char buf2[2][CHUNKSIZE + 4096] __attribute__((aligned(4096)));
+int f __attribute__((aligned(8)));
+
+static void vwrite(int fd, void *buf, size_t count)
+{
+	struct iovec iov;
+	ssize_t n;
+
+	iov.iov_base = buf;
+	iov.iov_len = count;
+
+	while (iov.iov_len > 0) {
+		n = vmsplice(1, &iov, 1, 0);
+		if (n < 0) {
+			perror("vmsplice");
+			exit(1);
+		}
+		iov.iov_base += n;
+		iov.iov_len -= n;
+	}
+}
 
 static const __m128i mask_shuffle[] = {
 	{0x0706050403020100ULL, 0x0f0e0d0c0b0a0908ULL},
@@ -140,64 +159,6 @@ static int out_7fizz(char *buf)
 	return 7;
 }
 
-#if 0
-
-static int out_4fb(char *buf)
-{
-	//"4\nFizzBu" = 0x75427a7a69460a34
-	//"zz\n" = 0x2e0a7a7a
-	*((uint64_t *)buf) = 0x75427a7a69460a34;
-	*((uint32_t *)(buf + 8)) = 0x2e0a7a7a;
-	return 11;
-}
-
-static int out_9fb(char *buf)
-{
-	//"9\nFizzBu" = 0x75427a7a69460a39
-	//"zz\n" = 0x2e0a7a7a
-	*((uint64_t *)buf) = 0x75427a7a69460a39;
-	*((uint32_t *)(buf + 8)) = 0x2e0a7a7a;
-	return 11;
-}
-
-static int out_3fandb(char *buf)
-{
-	//"3\nFizz\nB" = 0x420a7a7a69460a33
-	//"uzz\n" = 0x0a7a7a75
-	*((uint64_t *)buf) = 0x420a7a7a69460a33;
-	*((uint32_t *)(buf + 8)) = 0x0a7a7a75;
-	return 12;
-}
-
-static int out_8fandb(char *buf)
-{
-	//"8\nFizz\nB" = 0x420a7a7a69460a38
-	//"uzz\n" = 0x0a7a7a75
-	*((uint64_t *)buf) = 0x420a7a7a69460a38;
-	*((uint32_t *)(buf + 8)) = 0x0a7a7a75;
-	return 12;
-}
-
-static int out_4bandf(char *buf)
-{
-	//"4\nBuzz\nF" = 0x460a7a7a75420a34
-	//"izz\n" = 0x0a7a7a69
-	*((uint64_t *)buf) = 0x460a7a7a75420a34;
-	*((uint32_t *)(buf + 8)) = 0x0a7a7a69;
-	return 12;
-}
-
-static int out_9bandf(char *buf)
-{
-	//"9\nBuzz\nF" = 0x460a7a7a75420a39
-	//"izz\n" = 0x0a7a7a69
-	*((uint64_t *)buf) = 0x460a7a7a75420a39;
-	*((uint32_t *)(buf + 8)) = 0x0a7a7a69;
-	return 12;
-}
-
-#else
-
 static int out_4fb(char *buf)
 {
 	//"4\nFizzBu" = 0x75427a7a69460a34
@@ -252,10 +213,9 @@ static int out_9bandf(char *buf)
 	return 12;
 }
 
-#endif
-
 int main(int argc, char *argv[])
 {
+	char *p = buf2[f];
 	__m128i d;
 	int ke = 0;
 	uint64_t next_ke = 1;
@@ -264,8 +224,7 @@ int main(int argc, char *argv[])
 
 	d = _mm_set1_epi8(0xf6);
 
-	char *p = buf2[f];
-	for (uint64_t i = 1; i <= 0xffffffffUL/10; i += 3) {
+	for (uint64_t i = 1; i <= 0xffffffff/10; i += 3) {
 		__m128i v;
 
 		v = to_num(d, ke);
@@ -316,45 +275,14 @@ int main(int argc, char *argv[])
 
 		int n = p - buf2[f] - CHUNKSIZE;
 		if (n >= 0) {
-			struct iovec iov;
-			ssize_t nn;
-
-			iov.iov_base = buf2[f];
-			iov.iov_len = CHUNKSIZE;
-
-			while (iov.iov_len > 0) {
-				nn = vmsplice(1, &iov, 1, 0);
-				if (nn < 0) {
-					perror("vmsplice");
-					exit(1);
-				}
-				iov.iov_base += nn;
-				iov.iov_len -= nn;
-			}
-
+			vwrite(1, buf2[f], CHUNKSIZE);
 			f = !f;
 			memcpy(buf2[f], &buf2[!f][CHUNKSIZE], n);
 			p = &buf2[f][n];
 		}
 	}
 
-	{
-		struct iovec iov;
-		ssize_t nn;
-
-		iov.iov_base = buf2[f];
-		iov.iov_len = CHUNKSIZE;
-
-		while (iov.iov_len > 0) {
-			nn = vmsplice(1, &iov, 1, 0);
-			if (nn < 0) {
-				perror("vmsplice");
-				exit(1);
-			}
-			iov.iov_base += nn;
-			iov.iov_len -= nn;
-		}
-	}
+	vwrite(1, buf2[f], p - buf2[f]);
 
 	return 0;
 }
