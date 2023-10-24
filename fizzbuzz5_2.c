@@ -228,6 +228,54 @@ static inline void memcpy_simple(void *d, void *s, int n)
 		_mm_store_si128(dd++, _mm_load_si128(ss++));
 	} while ((i += 64) < n);
 }
+
+#define FIZZ1x()                           \
+	do {                               \
+		v = to_num(d, ke);         \
+		p += out_fixnum(p, v, ke); \
+		p += out_1two(p);          \
+		p += out_fixnum(p, v, ke); \
+		p += out_2fizz(p);         \
+		p += out_fixnum(p, v, ke); \
+		p += out_4bandf(p);        \
+		p += out_fixnum(p, v, ke); \
+		p += out_7two(p);          \
+		p += out_fixnum(p, v, ke); \
+		p += out_8fandb(p);        \
+	} while (0);
+
+#define FIZZ2x()                           \
+	do {                               \
+		v = to_num(d, ke);         \
+		p += out_fixnum(p, v, ke); \
+		p += out_1fizz(p);         \
+		p += out_fixnum(p, v, ke); \
+		p += out_3two(p);          \
+		p += out_fixnum(p, v, ke); \
+		p += out_4fb(p);           \
+		p += out_fixnum(p, v, ke); \
+		p += out_6two(p);          \
+		p += out_fixnum(p, v, ke); \
+		p += out_7fizz(p);         \
+		p += out_fixnum(p, v, ke); \
+		p += out_9bandf(p);        \
+	} while (0);
+
+#define FIZZ3x()                           \
+	do {                               \
+		v = to_num(d, ke);         \
+		p += out_fixnum(p, v, ke); \
+		p += out_2two(p);          \
+		p += out_fixnum(p, v, ke); \
+		p += out_3fandb(p);        \
+		p += out_fixnum(p, v, ke); \
+		p += out_6fizz(p);         \
+		p += out_fixnum(p, v, ke); \
+		p += out_8two(p);          \
+		p += out_fixnum(p, v, ke); \
+		p += out_9fb(p);           \
+	} while (0);
+
 int main(int argc, char *argv[])
 {
 	char *p = buf2[f];
@@ -242,50 +290,17 @@ int main(int argc, char *argv[])
 	for (uint64_t i = 1; i <= 0xffffffff/10; i += 3) {
 		__m128i v;
 
-		v = to_num(d, ke);
-		p += out_fixnum(p, v, ke);
-		p += out_1two(p);
-		p += out_fixnum(p, v, ke);
-		p += out_2fizz(p);
-		p += out_fixnum(p, v, ke);
-		p += out_4bandf(p);
-		p += out_fixnum(p, v, ke);
-		p += out_7two(p);
-		p += out_fixnum(p, v, ke);
-		p += out_8fandb(p);
+		FIZZ1x();
 		d = inc_c(d);
 
 		if (next_ke == i) {
 			ke++;
 			next_ke *= 10;
 		}
-
-		v = to_num(d, ke);
-		p += out_fixnum(p, v, ke);
-		p += out_1fizz(p);
-		p += out_fixnum(p, v, ke);
-		p += out_3two(p);
-		p += out_fixnum(p, v, ke);
-		p += out_4fb(p);
-		p += out_fixnum(p, v, ke);
-		p += out_6two(p);
-		p += out_fixnum(p, v, ke);
-		p += out_7fizz(p);
-		p += out_fixnum(p, v, ke);
-		p += out_9bandf(p);
+		FIZZ2x();
 		d = inc_c(d);
 
-		v = to_num(d, ke);
-		p += out_fixnum(p, v, ke);
-		p += out_2two(p);
-		p += out_fixnum(p, v, ke);
-		p += out_3fandb(p);
-		p += out_fixnum(p, v, ke);
-		p += out_6fizz(p);
-		p += out_fixnum(p, v, ke);
-		p += out_8two(p);
-		p += out_fixnum(p, v, ke);
-		p += out_9fb(p);
+		FIZZ3x();
 		d = inc_c(d);
 
 		int n = p - buf2[f] - CHUNKSIZE;
