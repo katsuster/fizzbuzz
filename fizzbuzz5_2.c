@@ -13,9 +13,10 @@
 
 //512KB
 #define CHUNKSIZE    (4096 * 64)
+#define RESSIZE      1024
 
-char buf10[CHUNKSIZE + 512] __attribute__((aligned(4096)));
-char buf11[CHUNKSIZE + 512] __attribute__((aligned(4096)));
+char buf10[CHUNKSIZE + RESSIZE] __attribute__((aligned(4096)));
+char buf11[CHUNKSIZE + RESSIZE] __attribute__((aligned(4096)));
 char *buf2[2] = {buf10, buf11};
 int f __attribute__((aligned(8)));
 
@@ -287,21 +288,24 @@ int main(int argc, char *argv[])
 
 	d = _mm_set1_epi8(0xf6);
 
-	for (uint64_t i = 1; i <= 0xffffffff/10; i += 3) {
+	for (uint64_t i = 1; i <= 0xffffffff/10; i += 9) {
 		__m128i v;
 
-		FIZZ1x();
-		d = inc_c(d);
-
+		FIZZ1x(); d = inc_c(d);
 		if (next_ke == i) {
 			ke++;
 			next_ke *= 10;
 		}
-		FIZZ2x();
-		d = inc_c(d);
+		FIZZ2x(); d = inc_c(d);
+		FIZZ3x(); d = inc_c(d);
 
-		FIZZ3x();
-		d = inc_c(d);
+		FIZZ1x(); d = inc_c(d);
+		FIZZ2x(); d = inc_c(d);
+		FIZZ3x(); d = inc_c(d);
+
+		FIZZ1x(); d = inc_c(d);
+		FIZZ2x(); d = inc_c(d);
+		FIZZ3x(); d = inc_c(d);
 
 		int n = p - buf2[f] - CHUNKSIZE;
 		if (n >= 0) {
